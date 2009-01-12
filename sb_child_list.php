@@ -119,7 +119,7 @@ function sb_render_parent($child_id) {
 		$return = $settings->child_list_parent_link;
 
 		$return = str_replace('[post_title]', $parent->post_title, $return);
-		$return = str_replace('[post_permalink]', $parent->post_guid, $return);
+		$return = str_replace('[post_permalink]', $parent->guid, $return);
 	}
 
 	return $return;
