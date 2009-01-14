@@ -50,7 +50,10 @@ function sb_render_child_list($id, $settings, $nest_level=0) {
 			FROM ' . $wpdb->posts . '
 			WHERE
 				post_status = \'publish\'
-				AND post_parent = ' . $id;
+				AND post_parent = ' . $id . '
+			ORDER BY
+				menu_order
+				, post_title';
 
 	if ($children = $wpdb->get_results($sql)) {
 		$return .= $settings->child_list_start;
