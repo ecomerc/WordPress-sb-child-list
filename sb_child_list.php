@@ -71,7 +71,7 @@ function sb_render_child_list($id, $settings, $nest_level=0) {
 
 				$return .= $template;
 
-				if (!$settings->child_list_nesting_level || $settings->child_list_nesting_level <= $nest_level) {
+				if (!$settings->child_list_nesting_level || $nest_level < $settings->child_list_nesting_level) {
 					$return .= sb_render_child_list($child->ID, $settings, $nest_level);
 				}
 
