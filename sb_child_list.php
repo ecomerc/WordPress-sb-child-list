@@ -3,8 +3,9 @@
 /*
  Plugin Name: SB Child List
  Description: Plugin which enables a page/post hook to show a list of the child posts or pages. IE if you you a page called articles and then a load of articles below then maybe you want to show the child article titles on the articles page. This does that for you!
- Author: Sean Barton, Cambridge New Media Services
+ Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
+ Author URI: http://www.sean-barton.co.uk
  Version: 1.0
 
  Changelog:
@@ -12,39 +13,124 @@
  0.5:	Admin Page added.
  0.9:	Templating and nest limiting.
  1.0:	Added backlink from child to parent.
+ 1.1:	Added sb_cl_cat_list functionality
  */
 
-$sb_dir = str_replace('\\', '/', dirname(__FILE__));
-$sb_file = str_replace('\\', '/', __FILE__);
+$sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
+$sb_cl_file = str_replace('\\', '/', __FILE__);
 
-register_activation_hook($sb_file, 'sb_activate');
-register_deactivation_hook($sb_file, 'sb_deactivate');
+register_activation_hook($sb_cl_file, 'sb_cl_activate');
+register_deactivation_hook($sb_cl_file, 'sb_cl_deactivate');
 
-function sb_activate() {
-	if (!get_option('sb_child_list_settings')) {
+function sb_cl_activate() {
+	sb_cl_get_settings();
+}
+
+function sb_cl_get_settings() {
+	if (!$settings = get_option('sb_child_list_settings')) {
 		$obj = new StdClass();
 		$obj->child_list_start = '<ul>';
 		$obj->child_list_loop_start = '<li>';
 		$obj->child_list_loop_content = '<a href="[post_permalink]">[post_title]</a>';
 		$obj->child_list_loop_end = '</li>';
 		$obj->child_list_end = '</ul>';
+		
+		$obj->cat_list_start = '<ul>';
+		$obj->cat_list_loop = '<li><a href="[post_permalink]">[post_title]</a></li>';
+		$obj->cat_list_end = '</ul>';
 
 		$obj->child_list_parent_link = '<div><a href="[post_permalink]">[post_title]</a></div>';
 
-		add_option('sb_child_list_settings', $obj);
+		add_option('sb_cl_child_list_settings', $obj);
+		
+		$settings = $obj;
+	}
+	
+	return $settings;
+}
+
+function sb_cl_update_settings() {
+	if (sb_cl_post('submit_settings')) {
+		foreach (sb_cl_post('settings') as $key=>$value) {
+			$settings->$key = stripcslashes($value);
+		}
+
+		if (update_option('sb_child_list_settings', $settings)) {
+			sb_cl_display_feedback(__('Settings have been updated', 'sb'));
+		}
 	}
 }
 
-function sb_deactivate() {
+function sb_cl_deactivate() {
 	//Do we really want to do this? Lets not for now
-	//delete_option('sb_child_list_settings');
+	//delete_option('sb_cl_child_list_settings');
 }
 
-function sb_render_child_list($id, $settings, $nest_level=0) {
+function sb_cl_render_cat_list($category, $limit=false) {
+	global $wp_query, $posts;
+	
+	$temp_query = $wp_query;
+	
+	$settings = sb_cl_get_settings();
+	$cat_id = sb_get_cat_id_from_name($category);
+        $qs = "cat=" . $cat_id . '&post_status=publish';
+        
+        if ($limit) {
+            $qs .= '&posts_per_page=' . $limit;
+        }
+	
+        $cat_posts = new WP_Query($qs);
+        
+	$html .= $settings->cat_list_start;
+	
+	while ($cat_posts->have_posts()) {
+		$cat_posts->the_post();
+		update_post_caches($posts);
+		
+		ob_start();
+		the_permalink();
+		$permalink = ob_get_clean();
+		
+                
+		$template = $settings->cat_list_loop;
+		$template = str_replace('[post_title]', get_the_title(), $template);
+		$template = str_replace('[post_permalink]', $permalink, $template);
+
+		$html .= $template;
+	}
+	
+	$html .= $settings->cat_list_end;
+	
+	$wp_query = $temp_query;
+	rewind_posts();
+	the_post();
+	
+	return $html;
+}
+
+function sb_get_cat_id_from_name($cat) {
+        global $wpdb;
+        
+        $sql = 'SELECT term_id
+                FROM ' . $wpdb->prefix . 'terms
+                WHERE
+                    name LIKE "' . mysql_real_escape_string($cat) . '"
+                    OR slug LIKE "' . mysql_real_escape_string($cat) . '"
+        ';
+        $cat_id = $wpdb->get_var($sql);
+        
+        return $cat_id;
+    }
+    
+function sb_cl_render_child_list($id=false, $nest_level=0) {
 	global $wpdb;
 
 	$return = false;
 	$nest_level++;
+	$settings = sb_cl_get_settings();
+	if (!$id) {
+		$id = get_the_ID();
+	}
 
 	$sql = 'SELECT ID, post_title, post_type
 			FROM ' . $wpdb->posts . '
@@ -75,7 +161,7 @@ function sb_render_child_list($id, $settings, $nest_level=0) {
 				$return .= $template;
 
 				if (!$settings->child_list_nesting_level || $nest_level < $settings->child_list_nesting_level) {
-					$return .= sb_render_child_list($child->ID, $settings, $nest_level);
+					$return .= sb_cl_render_child_list($child->ID, $settings, $nest_level);
 				}
 
 				$return .= $settings->child_list_loop_end;
@@ -88,34 +174,41 @@ function sb_render_child_list($id, $settings, $nest_level=0) {
 	return $return;
 }
 
-function sb_display_feedback($msg) {
+function sb_cl_display_feedback($msg) {
 	echo '<div id="message" class="updated fade" style="margin-top: 5px; padding: 7px;">' . $msg . '</div>';
 }
 
-function sb_display_error($msg) {
+function sb_cl_display_error($msg) {
 	echo '<div id="error" class="error" style="margin-top: 5px; padding: 7px;">' . $msg . '</div>';
 }
 
-function sb_filter_post($atts) {
-	/*	extract(shortcode_atts(array(
-		'foo' => 'no foo',
-		'bar' => 'default bar',
-		), $atts)); // An extension for later maybe */
+function sb_cl_filter_post($atts, $content, $tag) {
+	$return = '';
 
-	$settings = get_option('sb_child_list_settings');
-	return sb_render_child_list(get_the_id(), $settings);
+	switch ($tag) {
+		case 'sb_child_list':
+			$return = sb_cl_render_child_list();
+			break;
+		case 'sb_cat_list':
+			$return = sb_cl_render_cat_list($atts['category']);
+			break;
+		case 'sb_parent':
+			$return = sb_cl_render_parent();
+			break;
+	}
+	
+	return $return;
 }
 
-function sb_filter_post_parent($atts) {
-	return sb_render_parent(get_the_id());
-}
-
-function sb_render_parent($child_id) {
+function sb_cl_render_parent($child_id=false) {
 	global $wpdb;
 
-	$settings = get_option('sb_child_list_settings');
+	$settings = sb_cl_get_settings();
 	$page = get_page($child_id);
 	$return = false;
+	if (!$child_id) {
+		$child_id = get_the_ID();
+	}
 
 	if ($parent_id = $page->post_parent) {
 		$parent = get_page($parent_id);
@@ -128,30 +221,23 @@ function sb_render_parent($child_id) {
 	return $return;
 }
 
-function sb_init_admin_page() {
-	global $sb_file;
-	add_options_page('SB Child List Options', 'SB Child List', 8, $sb_file, 'sb_admin_page');
+function sb_cl_init_admin_page() {
+	global $sb_cl_file;
+	add_options_page('SB Child List Options', 'SB Child List', 8, $sb_cl_file, 'sb_cl_admin_page');
 }
 
-function sb_admin_page() {
-	$settings = get_option('sb_child_list_settings');
+function sb_cl_admin_page() {
+	sb_cl_update_settings();
+	
+	$settings = sb_cl_get_settings();
 	$detail_style = 'margin: 5px 0 5px 0; color: gray; width: 160px; font-size: 10px;';
 
 	echo '<div class="wrap" id="poststuff">';
 
-	if (sb_post('submit_settings')) {
-		foreach (sb_post('settings') as $key=>$value) {
-			$settings->$key = stripcslashes($value);
-		}
-
-		if (update_option('sb_child_list_settings', $settings)) {
-			sb_display_feedback(__('Settings have been updated', 'sb'));
-		}
-	}
-
-	echo sb_start_box('SB Child List Options');
-
 	echo '<form method="POST">';
+	
+	sb_cl_start_box('SB Child List Options');
+
 	echo '<table style="width: 100%;">';
 
 	echo '	<tr>
@@ -220,41 +306,76 @@ function sb_admin_page() {
 			</tr>';
 
 	echo '	<tr>
+			<td style="vertical-align: top;">
+				<div>' . __('Child List Parent Link', 'sb') . '</div>
+				<div style="' . $detail_style . '">' . __('Template for the block to show when a page has a parent', 'sb') . '</div>
+			</td>
+			<td style="vertical-align: top;">
+				<textarea rows="5" cols="70" name="settings[child_list_parent_link]">' . wp_specialchars($settings->child_list_parent_link, true) . '</textarea>
+			</td>
+		</tr>';
+		
+	//----------- start cat list options		
+		
+	echo '	<tr>
 				<td style="vertical-align: top;">
-					<div>' . __('Child List Parent Link', 'sb') . '</div>
-					<div style="' . $detail_style . '">' . __('Template for the block to show when a page has a parent', 'sb') . '</div>
+					<div>' . __('Category List Start Template', 'sb') . '</div>
+					<div style="' . $detail_style . '">' . __('Template for the start of the category list', 'sb') . '</div>
 				</td>
 				<td style="vertical-align: top;">
-					<textarea rows="5" cols="70" name="settings[child_list_parent_link]">' . wp_specialchars($settings->child_list_parent_link, true) . '</textarea>
+					<textarea rows="2" cols="70" name="settings[cat_list_start]">' . wp_specialchars($settings->cat_list_start, true) . '</textarea>
 				</td>
 			</tr>';
 
 	echo '	<tr>
-				<td colspan="2" style="text-align: right;">
-					<input type="submit" name="submit_settings" value="' . __('Update Settings', 'sb') . '" class="button" />
+				<td style="vertical-align: top;">
+					<div>' . __('Category List Loop', 'sb') . '</div>
+					<div style="' . $detail_style . '">' . __('Template for the loop part of the category list. Use the hooks [post_title] and [post_permalink].', 'sb') . '</div>
+				</td>
+				<td style="vertical-align: top;">
+					<textarea rows="2" cols="70" name="settings[cat_list_loop]">' . wp_specialchars($settings->cat_list_loop, true) . '</textarea>
 				</td>
 			</tr>';
 
+	echo '	<tr>
+				<td style="vertical-align: top;">
+					<div>' . __('Category List End Template', 'sb') . '</div>
+					<div style="' . $detail_style . '">' . __('Template for the end of the category list', 'sb') . '</div>
+				</td>
+				<td style="vertical-align: top;">
+					<textarea rows="2" cols="70" name="settings[cat_list_end]">' . wp_specialchars($settings->cat_list_end, true) . '</textarea>
+				</td>
+			</tr>';
+			
+	//----------- end cat list options
+
+	echo '	<tr>
+			<td colspan="2" style="text-align: right;">
+				<input type="submit" name="submit_settings" value="' . __('Update Settings', 'sb') . '" class="button" />
+			</td>
+		</tr>';
+
 	echo '</table>';
-	echo '</form>';
 
-	echo sb_end_box();
-	echo '<div>';
+	sb_cl_end_box();
+	
+	echo '</form>';	
+	echo '</div>';
 }
 
-function sb_post($key, $default='', $strip_tags=false) {
-	return sb_get_global($_POST, $key, $default, $strip_tags);
+function sb_cl_post($key, $default='', $strip_tags=false) {
+	return sb_cl_get_global($_POST, $key, $default, $strip_tags);
 }
 
-function sb_get($key, $default='', $strip_tags=false) {
-	return sb_get_global($_GET, $key, $default, $strip_tags);
+function sb_cl_get($key, $default='', $strip_tags=false) {
+	return sb_cl_get_global($_GET, $key, $default, $strip_tags);
 }
 
-function sb_request($key, $default='', $strip_tags=false) {
-	return sb_get_global($_REQUEST, $key, $default, $strip_tags);
+function sb_cl_request($key, $default='', $strip_tags=false) {
+	return sb_cl_get_global($_REQUEST, $key, $default, $strip_tags);
 }
 
-function sb_get_global($array, $key, $default='', $strip_tags) {
+function sb_cl_get_global($array, $key, $default='', $strip_tags) {
 	if (isset($array[$key])) {
 		$default = $array[$key];
 
@@ -266,7 +387,7 @@ function sb_get_global($array, $key, $default='', $strip_tags) {
 	return $default;
 }
 
-function sb_start_box($title , $return=true){
+function sb_cl_start_box($title , $return=false){
 
 	$html = '	<div class="postbox" style="margin: 5px 0px;">
 					<h3>' . $title . '</h3>
@@ -279,7 +400,7 @@ function sb_start_box($title , $return=true){
 	}
 }
 
-function sb_end_box($return=true) {
+function sb_cl_end_box($return=false) {
 	$html = '</div>
 		</div>';
 
@@ -290,14 +411,15 @@ function sb_end_box($return=true) {
 	}
 }
 
-function sb_loaded() {
-	add_shortcode('sb_child_list', 'sb_filter_post');
-	add_shortcode('sb_parent', 'sb_filter_post_parent');
+function sb_cl_loaded() {
+	add_shortcode('sb_child_list', 'sb_cl_filter_post');
+	add_shortcode('sb_cat_list', 'sb_cl_filter_post');
+	add_shortcode('sb_parent', 'sb_cl_filter_post');
 
 	//actions
-	add_action('admin_menu', 'sb_init_admin_page');
+	add_action('admin_menu', 'sb_cl_init_admin_page');
 }
 
-add_action('plugins_loaded', 'sb_loaded');
+add_action('plugins_loaded', 'sb_cl_loaded');
 
 ?>

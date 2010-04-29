@@ -1,10 +1,10 @@
 === Plugin Name ===
 Contributors: seanbarton
-Tags: page, parent, child, child list, sb_child_list, cms, hierarchy, breadcrumbs, links
+Tags: page, parent, child, child list, sb_child_list, cms, hierarchy, breadcrumbs, links, category listings
 Requires at least: 2.3
-Tested up to: 2.9.1
+Tested up to: 2.9.2
 
-A Plugin to introduce some shortcodes to use on parent pages which give dynamic information on it's children
+A Plugin to introduce some shortcodes to use on parent pages which give dynamic information on it's children. Additionally gives a category post listing shortcode
 
 == Description ==
 
@@ -17,6 +17,8 @@ Logically you would expect to see a list of the child pages on the articles page
 Adding the hook [sb_child_list] to any post or page will by default show an unordered list showing the children and links to them. If you prefer to style it yourself then don't worry because you can do that too using the templating system on the settings page.
 
 There is also add another tag, [sb_parent], that allows you to provide a back to parent link from any child. This enables you (in the articles example) to add a "click here to read more on this subject" link. It is also template based so it can say anything or look however you see fit
+
+This latest version includes a new shortcode [sb_cat_list category=CatName] which does what it says on the tin, simply give it a category name and it will show the posts in that category for you with optional 'limit argument
 
 == Installation ==
 
