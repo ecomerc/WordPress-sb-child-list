@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 1.0
+ Version: 1.2
 
  Changelog:
  0.1:	Basic functionality.
@@ -14,6 +14,7 @@
  0.9:	Templating and nest limiting.
  1.0:	Added backlink from child to parent.
  1.1:	Added sb_cl_cat_list functionality
+ 1.2:	Now using get_permalink for the child list. Means the guid field is no longer relied on and links always work
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -40,8 +41,9 @@ function sb_cl_get_settings() {
 		$obj->cat_list_end = '</ul>';
 
 		$obj->child_list_parent_link = '<div><a href="[post_permalink]">[post_title]</a></div>';
+		$obj->child_list_nesting_level = 2;
 
-		add_option('sb_cl_child_list_settings', $obj);
+		update_option('sb_child_list_settings', $obj);
 		
 		$settings = $obj;
 	}
@@ -69,15 +71,16 @@ function sb_cl_deactivate() {
 function sb_cl_render_cat_list($category, $limit=false) {
 	global $wp_query, $posts;
 	
+	if (!$limit) {
+		$limit = 1000;
+	}
+	
 	$temp_query = $wp_query;
 	
 	$settings = sb_cl_get_settings();
 	$cat_id = sb_get_cat_id_from_name($category);
         $qs = "cat=" . $cat_id . '&post_status=publish';
-        
-        if ($limit) {
-            $qs .= '&posts_per_page=' . $limit;
-        }
+        $qs .= '&posts_per_page=' . $limit;
 	
         $cat_posts = new WP_Query($qs);
         
@@ -156,7 +159,7 @@ function sb_cl_render_child_list($id=false, $nest_level=0) {
 
 				$template = $settings->child_list_loop_content;
 				$template = str_replace('[post_title]', $p->post_title, $template);
-				$template = str_replace('[post_permalink]', $p->guid, $template);
+				$template = str_replace('[post_permalink]', get_permalink($child->ID), $template);
 
 				$return .= $template;
 
@@ -190,7 +193,7 @@ function sb_cl_filter_post($atts, $content, $tag) {
 			$return = sb_cl_render_child_list();
 			break;
 		case 'sb_cat_list':
-			$return = sb_cl_render_cat_list($atts['category']);
+			$return = sb_cl_render_cat_list($atts['category'], $atts['limit']);
 			break;
 		case 'sb_parent':
 			$return = sb_cl_render_parent();

@@ -2,7 +2,7 @@
 Contributors: seanbarton
 Tags: page, parent, child, child list, sb_child_list, cms, hierarchy, breadcrumbs, links, category listings
 Requires at least: 2.3
-Tested up to: 2.9.2
+Tested up to: 3.0
 
 A Plugin to introduce some shortcodes to use on parent pages which give dynamic information on it's children. Additionally gives a category post listing shortcode
 
