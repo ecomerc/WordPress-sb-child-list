@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 1.2
+ Version: 1.3
 
  Changelog:
  0.1:	Basic functionality.
@@ -15,6 +15,7 @@
  1.0:	Added backlink from child to parent.
  1.1:	Added sb_cl_cat_list functionality
  1.2:	Now using get_permalink for the child list. Means the guid field is no longer relied on and links always work
+ 1.3:	Added post_thumb to the templating system. Uses the WP Post Thumbnail system. Contributed by a plugin user.
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
