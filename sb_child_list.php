@@ -78,7 +78,7 @@ function sb_cl_render_cat_list($category, $limit=false) {
 	$temp_query = $wp_query;
 	
 	$settings = sb_cl_get_settings();
-	$cat_id = sb_get_cat_id_from_name($category);
+	$cat_id = sb_cl_get_cat_id_from_name($category);
         $qs = "cat=" . $cat_id . '&post_status=publish';
         $qs .= '&posts_per_page=' . $limit;
 	
@@ -98,6 +98,7 @@ function sb_cl_render_cat_list($category, $limit=false) {
 		$template = $settings->cat_list_loop;
 		$template = str_replace('[post_title]', get_the_title(), $template);
 		$template = str_replace('[post_permalink]', $permalink, $template);
+		$template = str_replace('[post_thumb]', get_the_post_thumbnail( $child->ID, 'thumbnail', array('class' => 'alignleft')), $template);
 
 		$html .= $template;
 	}
@@ -111,7 +112,7 @@ function sb_cl_render_cat_list($category, $limit=false) {
 	return $html;
 }
 
-function sb_get_cat_id_from_name($cat) {
+function sb_cl_get_cat_id_from_name($cat) {
         global $wpdb;
         
         $sql = 'SELECT term_id
@@ -140,6 +141,7 @@ function sb_cl_render_child_list($id=false, $nest_level=0) {
 			WHERE
 				post_status = \'publish\'
 				AND post_parent = ' . $id . '
+				AND post_type = \'page\'
 			ORDER BY
 				menu_order
 				, post_title';
@@ -160,6 +162,7 @@ function sb_cl_render_child_list($id=false, $nest_level=0) {
 				$template = $settings->child_list_loop_content;
 				$template = str_replace('[post_title]', $p->post_title, $template);
 				$template = str_replace('[post_permalink]', get_permalink($child->ID), $template);
+				$template = str_replace('[post_thumb]', get_the_post_thumbnail( $child->ID, 'thumbnail', array('class' => 'alignleft')), $template);
 
 				$return .= $template;
 
@@ -266,7 +269,7 @@ function sb_cl_admin_page() {
 	echo '	<tr>
 				<td style="vertical-align: top;">
 					<div>' . __('Child List Loop Content', 'sb') . '</div>
-					<div style="' . $detail_style . '">' . __('Template for the loop part of the list. Use the hooks [post_title] and [post_permalink].', 'sb') . '</div>
+					<div style="' . $detail_style . '">' . __('Template for the loop part of the list. Use the hooks [post_title], [post_thumb] and [post_permalink].', 'sb') . '</div>
 				</td>
 				<td style="vertical-align: top;">
 					<textarea rows="2" cols="70" name="settings[child_list_loop_content]">' . wp_specialchars($settings->child_list_loop_content, true) . '</textarea>
