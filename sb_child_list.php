@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 1.3
+ Version: 1.4
 
  Changelog:
  0.1:	Basic functionality.
@@ -16,6 +16,7 @@
  1.1:	Added sb_cl_cat_list functionality
  1.2:	Now using get_permalink for the child list. Means the guid field is no longer relied on and links always work
  1.3:	Added post_thumb to the templating system. Uses the WP Post Thumbnail system. Contributed by a plugin user.
+ 1.4:	Fixed post_thumb option whereby the function didn't exist on some installs. Uses the get_the_post_thumb function to operate
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -99,7 +100,10 @@ function sb_cl_render_cat_list($category, $limit=false) {
 		$template = $settings->cat_list_loop;
 		$template = str_replace('[post_title]', get_the_title(), $template);
 		$template = str_replace('[post_permalink]', $permalink, $template);
-		$template = str_replace('[post_thumb]', get_the_post_thumbnail( $child->ID, 'thumbnail', array('class' => 'alignleft')), $template);
+		
+		if (function_exists('get_the_post_thumbnail')) {
+			$template = str_replace('[post_thumb]', get_the_post_thumbnail( $child->ID, 'thumbnail', array('class' => 'alignleft')), $template);
+		}
 
 		$html .= $template;
 	}
@@ -163,7 +167,9 @@ function sb_cl_render_child_list($id=false, $nest_level=0) {
 				$template = $settings->child_list_loop_content;
 				$template = str_replace('[post_title]', $p->post_title, $template);
 				$template = str_replace('[post_permalink]', get_permalink($child->ID), $template);
-				$template = str_replace('[post_thumb]', get_the_post_thumbnail( $child->ID, 'thumbnail', array('class' => 'alignleft')), $template);
+				if (function_exists('get_the_post_thumbnail')) {
+					$template = str_replace('[post_thumb]', get_the_post_thumbnail( $child->ID, 'thumbnail', array('class' => 'alignleft')), $template);
+				}
 
 				$return .= $template;
 
