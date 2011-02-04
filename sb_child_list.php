@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 1.4
+ Version: 1.5
 
  Changelog:
  0.1:	Basic functionality.
@@ -17,6 +17,7 @@
  1.2:	Now using get_permalink for the child list. Means the guid field is no longer relied on and links always work
  1.3:	Added post_thumb to the templating system. Uses the WP Post Thumbnail system. Contributed by a plugin user.
  1.4:	Fixed post_thumb option whereby the function didn't exist on some installs. Uses the get_the_post_thumb function to operate
+ 1.5:	Updated sb_parent permalink from guid to get_permalink
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -228,7 +229,8 @@ function sb_cl_render_parent($child_id=false) {
 		$return = $settings->child_list_parent_link;
 
 		$return = str_replace('[post_title]', $parent->post_title, $return);
-		$return = str_replace('[post_permalink]', $parent->guid, $return);
+		//$return = str_replace('[post_permalink]', $parent->guid, $return);
+		$return = str_replace('[post_permalink]', get_permalink($parent_id), $return);
 	}
 
 	return $return;
