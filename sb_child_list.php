@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 1.6
+ Version: 1.7
 
  Changelog:
  0.1:	Basic functionality.
@@ -19,6 +19,7 @@
  1.4:	Fixed post_thumb option whereby the function didn't exist on some installs. Uses the get_the_post_thumb function to operate
  1.5:	Updated sb_parent permalink from guid to get_permalink
  1.6:	Added templating for the shortcodes (multiple instances of the shortcode in different formats now possible) and support for the_excerpt and SB Uploader output (custom fields called post_image and post_image2 will be recognised)
+ 1.7:	Forced page excerpt support in case it wasn't already added. Added tooltip for post_excerpt
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -26,6 +27,8 @@ $sb_cl_file = str_replace('\\', '/', __FILE__);
 
 register_activation_hook($sb_cl_file, 'sb_cl_activate');
 register_deactivation_hook($sb_cl_file, 'sb_cl_deactivate');
+
+add_post_type_support( 'page', 'excerpt' );
 
 function sb_cl_activate() {
 	sb_cl_get_settings();
@@ -162,7 +165,7 @@ function sb_cl_get_cat_id_from_name($cat) {
         $cat_id = $wpdb->get_var($sql);
         
         return $cat_id;
-    }
+}
     
 function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0) {
 	global $wpdb;
@@ -261,7 +264,7 @@ function sb_cl_filter_post($atts, $content, $tag) {
 
 	switch ($tag) {
 		case 'sb_child_list':
-			$return = sb_cl_render_child_list($template);
+			$return = sb_cl_render_child_list($template, false, @$atts['nest_level']);
 			break;
 		case 'sb_cat_list':
 			$return = sb_cl_render_cat_list($atts['category'], $atts['limit'], $template);
@@ -340,7 +343,7 @@ function sb_cl_admin_page() {
 	echo '	<tr>
 				<td style="vertical-align: top;">
 					<div>' . __('Child List Loop Content', 'sb') . '</div>
-					<div style="' . $detail_style . '">' . __('Template for the loop part of the list. Use the hooks [post_title], [post_image] (SB Uploader), [post_image2] (SB Uploader Additional), [post_thumb] (WP) and [post_permalink].', 'sb') . '</div>
+					<div style="' . $detail_style . '">' . __('Template for the loop part of the list. Use the hooks [post_title], [post_image] (SB Uploader), [post_image2] (SB Uploader Additional), [post_thumb] (WP), [post_permalink], [post_excerpt].', 'sb') . '</div>
 				</td>
 				<td style="vertical-align: top;">
 					<textarea rows="6" cols="70" name="settings[child_list_loop_content]">' . wp_specialchars($settings->child_list_loop_content, true) . '</textarea>
@@ -397,7 +400,7 @@ function sb_cl_admin_page() {
 				echo '	<tr>
 						<td style="vertical-align: top;">
 							<div>' . __('Child List Loop Content', 'sb') . '</div>
-							<div style="' . $detail_style . '">' . __('Template ' . $i . ' for the loop part of the list. Use the hooks [post_title], [post_image] (SB Uploader), [post_image2] (SB Uploader Additional), [post_thumb] (WP) and [post_permalink].', 'sb') . '</div>
+							<div style="' . $detail_style . '">' . __('Template ' . $i . ' for the loop part of the list. Use the hooks [post_title], [post_image] (SB Uploader), [post_image2] (SB Uploader Additional), [post_thumb] (WP), [post_permalink], [post_excerpt].', 'sb') . '</div>
 						</td>
 						<td style="vertical-align: top;">
 							<textarea rows="6" cols="70" name="settings[child_list_loop_content_' . $i . ']">' . wp_specialchars($settings->$func, true) . '</textarea>
