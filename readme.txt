@@ -1,8 +1,8 @@
 === Plugin Name ===
 Contributors: seanbarton
-Tags: page, parent, child, child list, sb_child_list, cms, hierarchy, breadcrumbs, links, category listings
+Tags: page, parent, child, child list, sb_child_list, cms, hierarchy, breadcrumbs, links, category listings, sub pages, sub page
 Requires at least: 2.3
-Tested up to: 3.1
+Tested up to: 3.1.4
 
 A Plugin to introduce some shortcodes to use on parent pages which give dynamic information on it's children. Additionally gives a category post listing shortcode
 
@@ -18,11 +18,9 @@ Adding the hook [sb_child_list] to any post or page will by default show an unor
 
 There is also add another tag, [sb_parent], that allows you to provide a back to parent link from any child. This enables you (in the articles example) to add a "click here to read more on this subject" link. It is also template based so it can say anything or look however you see fit
 
-The last version includes a new shortcode [sb_cat_list category=CatName] which does what it says on the tin, simply give it a category name and it will show the posts in that category for you with optional 'limit' argument
+You can also use this shortcode: [sb_cat_list category=CatName] which does what it says on the tin, simply give it a category name and it will show the posts in that category for you with optional 'limit' argument
 
 The latest version incorporates some crude templating to allow multiple templates for [sb_child_list] and [sb_cat_list] with the argument 'template' ([sb_child_list template="2"]). I shall make it more elegant in the future but for now it does the job. Also added excerpt support and support for the SB Uploader Plugin custom fields.
-
-
 
 == Installation ==
 
@@ -33,8 +31,22 @@ e.g.
 1. Upload `sb_child_list.php` to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Place `[sb_child_list] in a parent page and optionally [sb_parent] to any child pages. Now with [sb_cat_list] for category items`
-4. In the settings menu under `SB Child List`, you will find some config options
+4. In the settings menu under `SB Child List`, you will find lots of lovely config options
 
 == Screenshots ==
 
 Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
+
+== Changelog ==
+
+ 0.1:	Basic functionality.
+ 0.5:	Admin Page added.
+ 0.9:	Templating and nest limiting.
+ 1.0:	Added backlink from child to parent.
+ 1.1:	Added sb_cl_cat_list functionality
+ 1.2:	Now using get_permalink for the child list. Means the guid field is no longer relied on and links always work
+ 1.3:	Added post_thumb to the templating system. Uses the WP Post Thumbnail system. Contributed by a plugin user.
+ 1.4:	Fixed post_thumb option whereby the function didn't exist on some installs. Uses the get_the_post_thumb function to operate
+ 1.5:	Updated sb_parent permalink from guid to get_permalink
+ 1.6:	Added templating for the shortcodes (multiple instances of the shortcode in different formats now possible) and support for the_excerpt and SB Uploader output (custom fields called post_image and post_image2 will be recognised)
+ 1.7:	Forced page excerpt support in case it wasn't already added. Added tooltip for post_excerpt
