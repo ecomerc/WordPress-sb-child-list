@@ -50,3 +50,4 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  1.5:	Updated sb_parent permalink from guid to get_permalink
  1.6:	Added templating for the shortcodes (multiple instances of the shortcode in different formats now possible) and support for the_excerpt and SB Uploader output (custom fields called post_image and post_image2 will be recognised)
  1.7:	Forced page excerpt support in case it wasn't already added. Added tooltip for post_excerpt
+ 1.8:	Added ability to sort a child list by any field in the wp_posts table by adding order="field_name" to the shortcode

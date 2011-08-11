@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 1.7
+ Version: 1.8
 
  Changelog:
  0.1:	Basic functionality.
@@ -20,6 +20,7 @@
  1.5:	Updated sb_parent permalink from guid to get_permalink
  1.6:	Added templating for the shortcodes (multiple instances of the shortcode in different formats now possible) and support for the_excerpt and SB Uploader output (custom fields called post_image and post_image2 will be recognised)
  1.7:	Forced page excerpt support in case it wasn't already added. Added tooltip for post_excerpt
+ 1.8:	Added ability to sort a child list by any field in the wp_posts table by adding order="field_name" to the shortcode
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -167,12 +168,16 @@ function sb_cl_get_cat_id_from_name($cat) {
         return $cat_id;
 }
     
-function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0) {
+function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $order=false) {
 	global $wpdb;
 
 	$return = false;
 	$nest_level++;
 	$settings = sb_cl_get_settings();
+	
+	if (!trim($order)) {
+		$order = 'menu_order, post_title';
+	}
 	
 	if ($template_id <= 1) {
 		$template_start = $settings->child_list_start;
@@ -203,9 +208,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0) {
 				post_status = \'publish\'
 				AND post_parent = ' . $id . '
 				AND post_type = \'page\'
-			ORDER BY
-				menu_order
-				, post_title';
+			ORDER BY ' . $order;
 
 	if ($children = $wpdb->get_results($sql)) {
 		$return .= $template_start;
@@ -237,7 +240,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0) {
 				$return .= $template;
 
 				if (!$settings->child_list_nesting_level || $nest_level < $settings->child_list_nesting_level) {
-					$return .= sb_cl_render_child_list($template_id, $child->ID, $nest_level);
+					$return .= sb_cl_render_child_list($template_id, $child->ID, $nest_level, $order);
 				}
 
 				$return .= $template_end_loop;
@@ -264,7 +267,7 @@ function sb_cl_filter_post($atts, $content, $tag) {
 
 	switch ($tag) {
 		case 'sb_child_list':
-			$return = sb_cl_render_child_list($template, false, @$atts['nest_level']);
+			$return = sb_cl_render_child_list($template, false, @$atts['nest_level'], @$atts['order']);
 			break;
 		case 'sb_cat_list':
 			$return = sb_cl_render_cat_list($atts['category'], $atts['limit'], $template);
@@ -594,7 +597,6 @@ function sb_cl_end_box($return=false) {
 
 function sb_cl_loaded() {
 	add_shortcode('sb_child_list', 'sb_cl_filter_post');
-	add_shortcode('sb_child_list_v2', 'sb_cl_filter_post');
 	add_shortcode('sb_cat_list', 'sb_cl_filter_post');
 	add_shortcode('sb_parent', 'sb_cl_filter_post');
 
