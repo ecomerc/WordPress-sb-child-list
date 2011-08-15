@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 1.8
+ Version: 1.9
 
  Changelog:
  0.1:	Basic functionality.
@@ -21,10 +21,12 @@
  1.6:	Added templating for the shortcodes (multiple instances of the shortcode in different formats now possible) and support for the_excerpt and SB Uploader output (custom fields called post_image and post_image2 will be recognised)
  1.7:	Forced page excerpt support in case it wasn't already added. Added tooltip for post_excerpt
  1.8:	Added ability to sort a child list by any field in the wp_posts table by adding order="field_name" to the shortcode
+ 1.9:	Added child list widget to show sub pages of current page or any other page of your choice.
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
 $sb_cl_file = str_replace('\\', '/', __FILE__);
+$sb_cl_max_templates = 3;
 
 register_activation_hook($sb_cl_file, 'sb_cl_activate');
 register_deactivation_hook($sb_cl_file, 'sb_cl_deactivate');
@@ -48,7 +50,13 @@ function sb_cl_get_settings() {
 		$obj->child_list_loop_start_2 = '<li>';
 		$obj->child_list_loop_content_2 = '<a href="[post_permalink]">[post_title]</a>';
 		$obj->child_list_loop_end_2 = '</li>';
-		$obj->child_list_end_2 = '</ul>';		
+		$obj->child_list_end_2 = '</ul>';
+		
+		$obj->child_list_start_3 = '<ul>';
+		$obj->child_list_loop_start_3 = '<li>';
+		$obj->child_list_loop_content_3 = '<a href="[post_permalink]">[post_title]</a>';
+		$obj->child_list_loop_end_3 = '</li>';
+		$obj->child_list_end_3 = '</ul>';		
 		
 		$obj->cat_list_start = '<ul>';
 		$obj->cat_list_loop = '<li><a href="[post_permalink]">[post_title]</a></li>';
@@ -56,7 +64,11 @@ function sb_cl_get_settings() {
 		
 		$obj->cat_list_start_2 = '<ul>';
 		$obj->cat_list_loop_2 = '<li><a href="[post_permalink]">[post_title]</a></li>';
-		$obj->cat_list_end_2 = '</ul>';		
+		$obj->cat_list_end_2 = '</ul>';
+		
+		$obj->cat_list_start_3 = '<ul>';
+		$obj->cat_list_loop_3 = '<li><a href="[post_permalink]">[post_title]</a></li>';
+		$obj->cat_list_end_3 = '</ul>';		
 
 		$obj->child_list_parent_link = '<div><a href="[post_permalink]">[post_title]</a></div>';
 		$obj->child_list_nesting_level = 2;
@@ -308,9 +320,10 @@ function sb_cl_init_admin_page() {
 }
 
 function sb_cl_admin_page() {
+	global $sb_cl_max_templates;
 	sb_cl_update_settings();
 	
-	$max_templates = 2;
+	$max_templates = $sb_cl_max_templates;
 	
 	$settings = sb_cl_get_settings();
 	$detail_style = 'margin: 5px 0 5px 0; color: gray; width: 160px; font-size: 10px;';
@@ -600,8 +613,71 @@ function sb_cl_loaded() {
 	add_shortcode('sb_cat_list', 'sb_cl_filter_post');
 	add_shortcode('sb_parent', 'sb_cl_filter_post');
 
-	//actions
+	//Actions
 	add_action('admin_menu', 'sb_cl_init_admin_page');
+	
+	//Widget
+	add_action('widgets_init', create_function('', 'return register_widget("sb_cl_pages_widget");'));
+}
+
+class sb_cl_pages_widget extends WP_Widget {
+    function sb_cl_pages_widget() {
+        parent::WP_Widget(false, 'SB Child List Widget');	
+    }
+
+    function widget($args, $instance) {
+	global $sbu;
+	
+        extract($args);
+        $title = apply_filters('widget_title', $instance['title']);
+        $text = apply_filters('widget_text', $instance['text']);
+        $template = (isset($instance['template_id']) ? $instance['text']:1);
+	$child_list = sb_cl_render_child_list($template, false);
+	
+	if ($child_list) {
+		echo $before_widget;
+		
+		if ($title) {
+		    echo $before_title . $title . $after_title;
+		}		    
+	
+		if ($text) {
+			echo $text;
+		}
+		
+		echo $child_list;
+		
+		echo $after_widget;
+	}
+    }
+
+    function update($new_instance, $old_instance) {
+        return $new_instance;
+    }
+
+    function form($instance) {
+	global $sbu, $sb_cl_max_templates;
+	
+        $title = esc_attr($instance['title']);
+	$text = trim(esc_attr($instance['text']));
+	
+        ?>
+            <p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?> <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" /></label></p>
+	    <p><label for="<?php echo $this->get_field_id('text'); ?>"><?php _e('Intro Text (optional):'); ?> <textarea class="widefat" id="<?php echo $this->get_field_id('text'); ?>" name="<?php echo $this->get_field_name('text'); ?>"><?php echo $text; ?></textarea></label></p>
+	
+	<p>
+		<label for="<?php echo $this->get_field_id('template_id'); ?>"><?php _e('Template:'); ?>
+			<select id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>">
+	<?php
+	
+	for ($i = 1; $i<= $sb_cl_max_templates; $i++) {
+		echo '<option value="' . $i . '" ' . selected($i, $instance['template_id'], false) . '>' . $i . '</option>';
+	}
+	
+	echo '		</select>
+		</label>
+	</p>';
+    }
 }
 
 add_action('plugins_loaded', 'sb_cl_loaded');
