@@ -52,3 +52,4 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  1.7:	Forced page excerpt support in case it wasn't already added. Added tooltip for post_excerpt
  1.8:	Added ability to sort a child list by any field in the wp_posts table by adding order="field_name" to the shortcode
  1.9:	Added child list widget to show sub pages of current page or any other page of your choice.
+ 2.0: 	Fixed widget title issue whereby the title was being changed to 1,2,3 depending on the template used. 

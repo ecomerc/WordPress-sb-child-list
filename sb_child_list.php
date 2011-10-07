@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 1.9
+ Version: 2.0
 
  Changelog:
  0.1:	Basic functionality.
@@ -22,6 +22,7 @@
  1.7:	Forced page excerpt support in case it wasn't already added. Added tooltip for post_excerpt
  1.8:	Added ability to sort a child list by any field in the wp_posts table by adding order="field_name" to the shortcode
  1.9:	Added child list widget to show sub pages of current page or any other page of your choice.
+ 2.0: 	Fixed widget title issue whereby the title was being changed to 1,2,3 depending on the template used. 
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -667,7 +668,7 @@ class sb_cl_pages_widget extends WP_Widget {
 	
 	<p>
 		<label for="<?php echo $this->get_field_id('template_id'); ?>"><?php _e('Template:'); ?>
-			<select id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>">
+			<select id="<?php echo $this->get_field_id('template_id'); ?>" name="<?php echo $this->get_field_name('template_id'); ?>">
 	<?php
 	
 	for ($i = 1; $i<= $sb_cl_max_templates; $i++) {
