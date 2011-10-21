@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 2.0
+ Version: 2.1
 
  Changelog:
  0.1:	Basic functionality.
@@ -22,7 +22,8 @@
  1.7:	Forced page excerpt support in case it wasn't already added. Added tooltip for post_excerpt
  1.8:	Added ability to sort a child list by any field in the wp_posts table by adding order="field_name" to the shortcode
  1.9:	Added child list widget to show sub pages of current page or any other page of your choice.
- 2.0: 	Fixed widget title issue whereby the title was being changed to 1,2,3 depending on the template used. 
+ 2.0: 	Fixed widget title issue whereby the title was being changed to 1,2,3 depending on the template used.
+ 2.1:	Child list and widget now shows ancestors if there are no children. Added parent link option to widget
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -229,7 +230,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 		foreach ($children as $i=>$child) {
 			if ($child->post_type == 'post') {
 				$p = get_post($child->ID);
-			} else if ($child->post_type == 'page') {
+			} else {
 				$p = get_page($child->ID);
 			}
 			
@@ -261,6 +262,11 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 		}
 
 		$return .= $template_end;
+	} else {
+		$parent = get_page($id);
+		if ($parent->post_parent) {
+			$return .= sb_cl_render_child_list($template_id, $parent->post_parent, $nest_level, $order);
+		}
 	}
 
 	return $return;
@@ -646,6 +652,15 @@ class sb_cl_pages_widget extends WP_Widget {
 			echo $text;
 		}
 		
+		if ($instance['show_parent_link']) {
+			global $post;
+			if ($parent = $post->post_parent) {
+				if ($parent = get_post($parent)) {
+					echo '<ul><li><a href="' . get_permalink($parent->ID) . '">Back to ' . $parent->post_title . '</a></li></ul>';
+				}
+			}
+		}
+		
 		echo $child_list;
 		
 		echo $after_widget;
@@ -660,10 +675,12 @@ class sb_cl_pages_widget extends WP_Widget {
 	global $sbu, $sb_cl_max_templates;
 	
         $title = esc_attr($instance['title']);
+        $show_parent_link = esc_attr($instance['show_parent_link']);
 	$text = trim(esc_attr($instance['text']));
 	
         ?>
             <p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?> <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" /></label></p>
+            <p><label for="<?php echo $this->get_field_id('show_parent_link'); ?>"><?php _e('Show Parent Link?:'); ?> <input id="<?php echo $this->get_field_id('show_parent_link'); ?>" name="<?php echo $this->get_field_name('show_parent_link'); ?>" type="checkbox" value="1" <?php checked($show_parent_link); ?> /></label></p>
 	    <p><label for="<?php echo $this->get_field_id('text'); ?>"><?php _e('Intro Text (optional):'); ?> <textarea class="widefat" id="<?php echo $this->get_field_id('text'); ?>" name="<?php echo $this->get_field_name('text'); ?>"><?php echo $text; ?></textarea></label></p>
 	
 	<p>
