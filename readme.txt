@@ -54,3 +54,4 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  1.9:	Added child list widget to show sub pages of current page or any other page of your choice.
  2.0: 	Fixed widget title issue whereby the title was being changed to 1,2,3 depending on the template used.
  2.1:	Child list and widget now shows ancestors if there are no children. Added parent link option to widget
+ 2.2:	Fixed issue with siblings showing in normal child list and then repeating themselves breaking the site.

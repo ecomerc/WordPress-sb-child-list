@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 2.1
+ Version: 2.2
 
  Changelog:
  0.1:	Basic functionality.
@@ -24,6 +24,7 @@
  1.9:	Added child list widget to show sub pages of current page or any other page of your choice.
  2.0: 	Fixed widget title issue whereby the title was being changed to 1,2,3 depending on the template used.
  2.1:	Child list and widget now shows ancestors if there are no children. Added parent link option to widget
+ 2.2:	Fixed issue with siblings showing in normal child list and then repeating themselves breaking the site.
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -262,7 +263,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 		}
 
 		$return .= $template_end;
-	} else {
+	} else if ($nest_level == 1) {
 		$parent = get_page($id);
 		if ($parent->post_parent) {
 			$return .= sb_cl_render_child_list($template_id, $parent->post_parent, $nest_level, $order);
