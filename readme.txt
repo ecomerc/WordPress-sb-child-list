@@ -1,10 +1,10 @@
 === Plugin Name ===
 Contributors: seanbarton
-Tags: page, parent, child, child list, sb_child_list, cms, hierarchy, breadcrumbs, links, category listings, sub pages, sub page
+Tags: page, parent, child, child list, sb_child_list, cms, hierarchy, breadcrumbs, links, category listings, sub pages, sub page, siblings, page siblings
 Requires at least: 2.3
 Tested up to: 3.1.4
 
-A Plugin to introduce some shortcodes to use on parent pages which give dynamic information on it's children. Additionally gives a category post listing shortcode
+The total in-page navigation solution for Wordpress. Using the shortcodes and widgets provided you can display navigation between your parent, child and sibling items in any format you can think of. Additionally by way of shortcode allows category post functionality.
 
 == Description ==
 
@@ -20,7 +20,19 @@ There is also add another tag, [sb_parent], that allows you to provide a back to
 
 You can also use this shortcode: [sb_cat_list category=CatName] which does what it says on the tin, simply give it a category name and it will show the posts in that category for you with optional 'limit' argument
 
-The latest version incorporates some crude templating to allow multiple templates for [sb_child_list] and [sb_cat_list] with the argument 'template' ([sb_child_list template="2"]). I shall make it more elegant in the future but for now it does the job. Also added excerpt support and support for the SB Uploader Plugin custom fields.
+The plugin creates a widget for use also. This works if there is a sub page present. Much like a sub pages widget or similar.
+
+I have added a shortcode for sibling navigation. You can use [sb_sibling_next] and [sb_sibling_prev] to show links to next and previous pages ordered by menu order followed by post title order. Handy indeed!
+
+There is a simple templating sytstem to allow multiple templates for [sb_child_list] and [sb_cat_list] with the argument 'template' ([sb_child_list template="2"]). Also added excerpt support and support for the SB Uploader Plugin custom fields (custom field called post_image will show if necessary).
+
+To round it all up.. Shortcode listings:
+
+[sb_child_list]
+[sb_parent]
+[sb_cat_list]
+[sb_sibling_next]
+[sb_sibling_prev]
 
 == Installation ==
 
@@ -55,3 +67,4 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  2.0: 	Fixed widget title issue whereby the title was being changed to 1,2,3 depending on the template used.
  2.1:	Child list and widget now shows ancestors if there are no children. Added parent link option to widget
  2.2:	Fixed issue with siblings showing in normal child list and then repeating themselves breaking the site.
+ 2.3:	Added two new shortcodes sb_sibling_next and sb_sibling_prev. Kind of like next and previous navigation for posts. Uses menu order for display followed by alphabetical post titles.

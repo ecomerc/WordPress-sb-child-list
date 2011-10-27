@@ -2,11 +2,11 @@
 
 /*
  Plugin Name: SB Child List
- Description: Plugin which enables a page/post hook to show a list of the child posts or pages. IE if you you a page called articles and then a load of articles below then maybe you want to show the child article titles on the articles page. This does that for you!
+ Description: The total in-page navigation solution for Wordpress. Using the shortcodes and widgets provided you can display navigation between your parent, child and sibling items in any format you can think of.
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 2.2
+ Version: 2.3
 
  Changelog:
  0.1:	Basic functionality.
@@ -25,6 +25,7 @@
  2.0: 	Fixed widget title issue whereby the title was being changed to 1,2,3 depending on the template used.
  2.1:	Child list and widget now shows ancestors if there are no children. Added parent link option to widget
  2.2:	Fixed issue with siblings showing in normal child list and then repeating themselves breaking the site.
+ 2.3:	Added two new shortcodes sb_sibling_next and sb_sibling_prev. Kind of like next and previous navigation for posts. Uses menu order for display followed by alphabetical post titles.
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -295,20 +296,68 @@ function sb_cl_filter_post($atts, $content, $tag) {
 		case 'sb_parent':
 			$return = sb_cl_render_parent();
 			break;
+		case 'sb_sibling_prev':
+			$return = sb_cl_render_sibling('prev');
+			break;
+		case 'sb_sibling_next':
+			$return = sb_cl_render_sibling('next');
+			break;
 	}
 	
 	return $return;
 }
 
+function sb_cl_render_sibling($type='next') {
+	global $post, $wpdb;
+	$html = '';
+	
+	if ($post->post_parent) {
+		$sql = 'SELECT ID, post_title, menu_order
+			FROM ' . $wpdb->posts . '
+			WHERE
+				post_type = "page"
+				AND post_status = "publish"
+				AND post_parent = ' . $post->post_parent . '
+			ORDER BY menu_order, post_title';
+		if ($siblings = $wpdb->get_results($sql)) {
+			$last = $current = $next = false;
+			
+			foreach ($siblings as $i=>$sibling) {
+				if ($current) {
+					$next = $sibling;
+					break;
+				} else if ($sibling->ID == $post->ID) {
+					$current = true;
+					
+					if ($type != 'next') {
+						break;
+					}
+				} else {
+					$last = $sibling;
+				}
+			}
+			
+			if ($type == 'prev' && $last) {
+				$html .= '<span class="sb_cl_prev_page sb_cl">&#0171; <a href="' . get_permalink($last->ID) . '">' . $last->post_title . '</a></span>';
+			} else if ($type == 'next' && $next) {
+				$html .= '<span class="sb_cl_next_page sb_cl"><a href="' . get_permalink($next->ID) . '">' . $next->post_title . '</a> &#0187;</span>';
+			}
+		}
+	}
+	
+	return $html;
+}
+
 function sb_cl_render_parent($child_id=false) {
 	global $wpdb;
-
-	$settings = sb_cl_get_settings();
-	$page = get_page($child_id);
-	$return = false;
+	
 	if (!$child_id) {
 		$child_id = get_the_ID();
 	}
+	
+	$settings = sb_cl_get_settings();
+	$page = get_page($child_id);
+	$return = false;
 
 	if ($parent_id = $page->post_parent) {
 		$parent = get_page($parent_id);
@@ -620,6 +669,8 @@ function sb_cl_loaded() {
 	add_shortcode('sb_child_list', 'sb_cl_filter_post');
 	add_shortcode('sb_cat_list', 'sb_cl_filter_post');
 	add_shortcode('sb_parent', 'sb_cl_filter_post');
+	add_shortcode('sb_sibling_next', 'sb_cl_filter_post');
+	add_shortcode('sb_sibling_prev', 'sb_cl_filter_post');
 
 	//Actions
 	add_action('admin_menu', 'sb_cl_init_admin_page');
