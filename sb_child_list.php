@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 2.3
+ Version: 2.4
 
  Changelog:
  0.1:	Basic functionality.
@@ -26,6 +26,7 @@
  2.1:	Child list and widget now shows ancestors if there are no children. Added parent link option to widget
  2.2:	Fixed issue with siblings showing in normal child list and then repeating themselves breaking the site.
  2.3:	Added two new shortcodes sb_sibling_next and sb_sibling_prev. Kind of like next and previous navigation for posts. Uses menu order for display followed by alphabetical post titles.
+ 2.4:	Added sb_grandparent so that you can feature one more level of parentage as a link back. Added getText format on "Back to" text for localisation.
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -296,6 +297,9 @@ function sb_cl_filter_post($atts, $content, $tag) {
 		case 'sb_parent':
 			$return = sb_cl_render_parent();
 			break;
+		case 'sb_grandparent':
+			$return = sb_cl_render_grandparent();
+			break;
 		case 'sb_sibling_prev':
 			$return = sb_cl_render_sibling('prev');
 			break;
@@ -348,9 +352,22 @@ function sb_cl_render_sibling($type='next') {
 	return $html;
 }
 
-function sb_cl_render_parent($child_id=false) {
-	global $wpdb;
+function sb_cl_render_grandparent($child_id=false) {
+	$return = '';
 	
+	if (!$child_id) {
+		$child_id = get_the_ID();
+	}
+	
+	$page = get_page($child_id);
+	if ($parent_id = $page->post_parent) {
+		$return = sb_cl_render_parent($parent_id);
+	}
+	
+	return $return;
+}
+
+function sb_cl_render_parent($child_id=false) {
 	if (!$child_id) {
 		$child_id = get_the_ID();
 	}
@@ -669,6 +686,7 @@ function sb_cl_loaded() {
 	add_shortcode('sb_child_list', 'sb_cl_filter_post');
 	add_shortcode('sb_cat_list', 'sb_cl_filter_post');
 	add_shortcode('sb_parent', 'sb_cl_filter_post');
+	add_shortcode('sb_grandparent', 'sb_cl_filter_post');
 	add_shortcode('sb_sibling_next', 'sb_cl_filter_post');
 	add_shortcode('sb_sibling_prev', 'sb_cl_filter_post');
 
@@ -708,7 +726,7 @@ class sb_cl_pages_widget extends WP_Widget {
 			global $post;
 			if ($parent = $post->post_parent) {
 				if ($parent = get_post($parent)) {
-					echo '<ul><li><a href="' . get_permalink($parent->ID) . '">Back to ' . $parent->post_title . '</a></li></ul>';
+					echo '<ul><li><a href="' . get_permalink($parent->ID) . '">' . __('Back to') . ' ' . $parent->post_title . '</a></li></ul>';
 				}
 			}
 		}
