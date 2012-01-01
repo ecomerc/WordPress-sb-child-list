@@ -1,8 +1,8 @@
 === Plugin Name ===
 Contributors: seanbarton
 Tags: page, parent, child, child list, sb_child_list, cms, hierarchy, breadcrumbs, links, category listings, sub pages, sub page, siblings, page siblings
-Requires at least: 2.3
-Tested up to: 3.1.4
+Requires at least: 3.0
+Tested up to: 3.3
 
 The total in-page navigation solution for Wordpress. Using the shortcodes and widgets provided you can display navigation between your parent, child and sibling items in any format you can think of. Additionally by way of shortcode allows category post functionality.
 
@@ -70,3 +70,4 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  2.2:	Fixed issue with siblings showing in normal child list and then repeating themselves breaking the site.
  2.3:	Added two new shortcodes sb_sibling_next and sb_sibling_prev. Kind of like next and previous navigation for posts. Uses menu order for display followed by alphabetical post titles.
  2.4:	Added sb_grandparent so that you can feature one more level of parentage as a link back. Added getText format on "Back to" text for localisation.
+ 2.5:	When [post_class] is used and the item relates to the current page then a classname will be added: 'current_page_item sb_cl_current_page' to allow you to style individual rows using CSS making the current page stand out perhaps.

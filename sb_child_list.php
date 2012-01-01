@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 2.4
+ Version: 2.5
 
  Changelog:
  0.1:	Basic functionality.
@@ -27,6 +27,7 @@
  2.2:	Fixed issue with siblings showing in normal child list and then repeating themselves breaking the site.
  2.3:	Added two new shortcodes sb_sibling_next and sb_sibling_prev. Kind of like next and previous navigation for posts. Uses menu order for display followed by alphabetical post titles.
  2.4:	Added sb_grandparent so that you can feature one more level of parentage as a link back. Added getText format on "Back to" text for localisation.
+ 2.5:	When [post_class] is used and the item relates to the current page then a classname will be added: 'current_page_item sb_cl_current_page' to allow you to style individual rows using CSS making the current page stand out perhaps.
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -47,19 +48,19 @@ function sb_cl_get_settings() {
 		$obj = new StdClass();
 		$obj->child_list_start = '<ul>';
 		$obj->child_list_loop_start = '<li>';
-		$obj->child_list_loop_content = '<a href="[post_permalink]">[post_title]</a>';
+		$obj->child_list_loop_content = '<a href="[post_permalink]" class="[post_class]">[post_title]</a>';
 		$obj->child_list_loop_end = '</li>';
 		$obj->child_list_end = '</ul>';
 		
 		$obj->child_list_start_2 = '<ul>';
 		$obj->child_list_loop_start_2 = '<li>';
-		$obj->child_list_loop_content_2 = '<a href="[post_permalink]">[post_title]</a>';
+		$obj->child_list_loop_content_2 = '<a href="[post_permalink]" class="[post_class]">[post_title]</a>';
 		$obj->child_list_loop_end_2 = '</li>';
 		$obj->child_list_end_2 = '</ul>';
 		
 		$obj->child_list_start_3 = '<ul>';
 		$obj->child_list_loop_start_3 = '<li>';
-		$obj->child_list_loop_content_3 = '<a href="[post_permalink]">[post_title]</a>';
+		$obj->child_list_loop_content_3 = '<a href="[post_permalink]" class="[post_class]">[post_title]</a>';
 		$obj->child_list_loop_end_3 = '</li>';
 		$obj->child_list_end_3 = '</ul>';		
 		
@@ -156,7 +157,17 @@ function sb_cl_render_cat_list($category, $limit=false, $template_id) {
 		$template = str_replace('[post_image2]', ($post_image2 ? '<img class="list_post_item" src="' . $post_image2 . '" />':''), $template);
 		
 		if (function_exists('get_the_post_thumbnail')) {
-			$template = str_replace('[post_thumb]', get_the_post_thumbnail( $id, 'thumbnail', array('class' => 'alignleft')), $template);
+			//$template = str_replace('[post_thumb]', get_the_post_thumbnail( $id, 'thumbnail', array('class' => 'alignleft')), $template);
+			
+			$thumb = '';
+			if ( has_post_thumbnail()) {
+			  $large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id($id), 'large');
+			  $thumb .= '<a href="' . $large_image_url[0] . '" title="' . the_title_attribute('echo=0') . '" >';
+			  $thumb .= get_the_post_thumbnail($id, 'thumbnail', array('class' => 'alignleft')); 
+			  $thumb .= '</a>';
+			}
+			
+			$template = str_replace('[post_thumb]', $thumb, $template);
 		}		
 
 		$html .= $template;
@@ -186,7 +197,9 @@ function sb_cl_get_cat_id_from_name($cat) {
 }
     
 function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $order=false) {
-	global $wpdb;
+	global $wpdb, $wp_query;
+	
+	$this_page_id = $wp_query->get_queried_object_id();
 
 	$return = false;
 	$nest_level++;
@@ -218,7 +231,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 	if (!$id) {
 		$id = get_the_ID();
 	}
-
+	
 	$sql = 'SELECT ID, post_title, post_type
 			FROM ' . $wpdb->posts . '
 			WHERE
@@ -238,10 +251,16 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 			}
 			
 			if ($p) {
+				$post_class = '';
 				$return .= $template_start_loop;
+				
+				if ($p->ID == $this_page_id) {
+					$post_class = 'current_page_item sb_cl_current_page';
+				}
 
 				$template = $template_content;
 				$template = str_replace('[post_title]', $p->post_title, $template);
+				$template = str_replace('[post_class]', $post_class, $template);
 				$template = str_replace('[post_excerpt]', $p->post_excerpt, $template);
 				
 				$post_image = get_post_meta($child->ID, 'post_image', true);
@@ -433,7 +452,7 @@ function sb_cl_admin_page() {
 	echo '	<tr>
 				<td style="vertical-align: top;">
 					<div>' . __('Child List Loop Content', 'sb') . '</div>
-					<div style="' . $detail_style . '">' . __('Template for the loop part of the list. Use the hooks [post_title], [post_image] (SB Uploader), [post_image2] (SB Uploader Additional), [post_thumb] (WP), [post_permalink], [post_excerpt].', 'sb') . '</div>
+					<div style="' . $detail_style . '">' . __('Template for the loop part of the list. Use the hooks [post_title], [post_image] (SB Uploader), [post_image2] (SB Uploader Additional), [post_thumb] (WP), [post_permalink], [post_excerpt]. The hook [post_class] can be used to output a classname only if the item relates to the current page. Good for highlighing the current page in a kind of menu structure.', 'sb') . '</div>
 				</td>
 				<td style="vertical-align: top;">
 					<textarea rows="6" cols="70" name="settings[child_list_loop_content]">' . wp_specialchars($settings->child_list_loop_content, true) . '</textarea>
