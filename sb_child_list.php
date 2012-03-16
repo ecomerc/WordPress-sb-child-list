@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 2.5
+ Version: 2.6
 
  Changelog:
  0.1:	Basic functionality.
@@ -28,6 +28,7 @@
  2.3:	Added two new shortcodes sb_sibling_next and sb_sibling_prev. Kind of like next and previous navigation for posts. Uses menu order for display followed by alphabetical post titles.
  2.4:	Added sb_grandparent so that you can feature one more level of parentage as a link back. Added getText format on "Back to" text for localisation.
  2.5:	When [post_class] is used and the item relates to the current page then a classname will be added: 'current_page_item sb_cl_current_page' to allow you to style individual rows using CSS making the current page stand out perhaps.
+ 2.6:	Added custom excerpt function so that when using [post_excerpt] in the template if you don't enter a manual one it will generate it from the post body as Wordpress does normally.
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -104,6 +105,38 @@ function sb_cl_deactivate() {
 	//delete_option('sb_cl_child_list_settings');
 }
 
+function sb_cl_get_the_excerpt($id=false) {
+      global $post;
+
+      $old_post = $post;
+      if ($id != $post->ID) {
+	  $post = get_page($id);
+      }
+
+      if (!$excerpt = trim($post->post_excerpt)) {
+	  $excerpt = $post->post_content;
+	  $excerpt = strip_shortcodes( $excerpt );
+	  $excerpt = apply_filters('the_content', $excerpt);
+	  $excerpt = str_replace(']]>', ']]&gt;', $excerpt);
+	  $excerpt = strip_tags($excerpt);
+	  $excerpt_length = apply_filters('excerpt_length', 55);
+	  $excerpt_more = apply_filters('excerpt_more', ' ' . '[...]');
+
+	  $words = preg_split("/[\n\r\t ]+/", $excerpt, $excerpt_length + 1, PREG_SPLIT_NO_EMPTY);
+	  if ( count($words) > $excerpt_length ) {
+	      array_pop($words);
+	      $excerpt = implode(' ', $words);
+	      $excerpt = $excerpt . $excerpt_more;
+	  } else {
+	      $excerpt = implode(' ', $words);
+	  }
+      }
+
+      $post = $old_post;
+
+      return $excerpt;
+  }
+
 function sb_cl_render_cat_list($category, $limit=false, $template_id) {
 	global $wp_query, $posts;
 	
@@ -148,7 +181,7 @@ function sb_cl_render_cat_list($category, $limit=false, $template_id) {
 		
 		$template = $template_loop;
 		$template = str_replace('[post_title]', get_the_title(), $template);
-		$template = str_replace('[post_excerpt]', get_the_excerpt(), $template);
+		$template = str_replace('[post_excerpt]', sb_cl_get_the_excerpt(), $template);
 		$template = str_replace('[post_permalink]', $permalink, $template);
 		
 		$post_image = get_post_meta($id, 'post_image', true);
@@ -261,7 +294,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 				$template = $template_content;
 				$template = str_replace('[post_title]', $p->post_title, $template);
 				$template = str_replace('[post_class]', $post_class, $template);
-				$template = str_replace('[post_excerpt]', $p->post_excerpt, $template);
+				$template = str_replace('[post_excerpt]', sb_cl_get_the_excerpt($p->ID), $template);
 				
 				$post_image = get_post_meta($child->ID, 'post_image', true);
 				$post_image2 = get_post_meta($child->ID, 'post_image2', true);
