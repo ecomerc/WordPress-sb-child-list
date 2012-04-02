@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 2.6
+ Version: 2.7
 
  Changelog:
  0.1:	Basic functionality.
@@ -29,6 +29,7 @@
  2.4:	Added sb_grandparent so that you can feature one more level of parentage as a link back. Added getText format on "Back to" text for localisation.
  2.5:	When [post_class] is used and the item relates to the current page then a classname will be added: 'current_page_item sb_cl_current_page' to allow you to style individual rows using CSS making the current page stand out perhaps.
  2.6:	Added custom excerpt function so that when using [post_excerpt] in the template if you don't enter a manual one it will generate it from the post body as Wordpress does normally.
+ 2.7:	Minor update, added support for qTranslate
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -115,6 +116,11 @@ function sb_cl_get_the_excerpt($id=false) {
 
       if (!$excerpt = trim($post->post_excerpt)) {
 	  $excerpt = $post->post_content;
+	  
+	  if (function_exists('qtrans_useCurrentLanguageIfNotFoundUseDefaultLanguage')) {
+		$excerpt = qtrans_useCurrentLanguageIfNotFoundUseDefaultLanguage($excerpt);
+	  }
+	  
 	  $excerpt = strip_shortcodes( $excerpt );
 	  $excerpt = apply_filters('the_content', $excerpt);
 	  $excerpt = str_replace(']]>', ']]&gt;', $excerpt);
@@ -290,9 +296,15 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 				if ($p->ID == $this_page_id) {
 					$post_class = 'current_page_item sb_cl_current_page';
 				}
+				
+				$title = $p->post_title;
+				
+				if (function_exists('qtrans_useCurrentLanguageIfNotFoundUseDefaultLanguage')) {
+				      $title = qtrans_useCurrentLanguageIfNotFoundUseDefaultLanguage($title);
+				}				
 
 				$template = $template_content;
-				$template = str_replace('[post_title]', $p->post_title, $template);
+				$template = str_replace('[post_title]', $title, $template);
 				$template = str_replace('[post_class]', $post_class, $template);
 				$template = str_replace('[post_excerpt]', sb_cl_get_the_excerpt($p->ID), $template);
 				

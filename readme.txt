@@ -92,4 +92,6 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  
  2.6:	Added custom excerpt function so that when using [post_excerpt] in the template if you don't enter a manual one it will generate it from the post body as Wordpress does normally.
  
+ 2.7:	Minor update, added support for qTranslate
+ 
  
