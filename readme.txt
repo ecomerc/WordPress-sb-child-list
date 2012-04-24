@@ -28,7 +28,7 @@ There is a simple templating sytstem to allow multiple templates for [sb_child_l
 
 To round it all up.. Shortcode listings:
 
-[sb_child_list]
+[sb_child_list] <-- Arguments allowed are: 'template', 'nest_level' and 'order'
 [sb_parent]
 [sb_grandparent]
 [sb_cat_list]
