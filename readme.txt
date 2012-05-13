@@ -94,4 +94,6 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  
  2.7:	Minor update, added support for qTranslate
  
- 
+ 2.8:	Minor update, added support for excerpt more tag if used.
+  
+  

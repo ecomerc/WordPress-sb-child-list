@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 2.7
+ Version: 2.8
 
  Changelog:
  0.1:	Basic functionality.
@@ -30,6 +30,7 @@
  2.5:	When [post_class] is used and the item relates to the current page then a classname will be added: 'current_page_item sb_cl_current_page' to allow you to style individual rows using CSS making the current page stand out perhaps.
  2.6:	Added custom excerpt function so that when using [post_excerpt] in the template if you don't enter a manual one it will generate it from the post body as Wordpress does normally.
  2.7:	Minor update, added support for qTranslate
+ 2.8:	Minor update, added support for excerpt more tag if used.
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -117,24 +118,28 @@ function sb_cl_get_the_excerpt($id=false) {
       if (!$excerpt = trim($post->post_excerpt)) {
 	  $excerpt = $post->post_content;
 	  
-	  if (function_exists('qtrans_useCurrentLanguageIfNotFoundUseDefaultLanguage')) {
-		$excerpt = qtrans_useCurrentLanguageIfNotFoundUseDefaultLanguage($excerpt);
-	  }
-	  
-	  $excerpt = strip_shortcodes( $excerpt );
-	  $excerpt = apply_filters('the_content', $excerpt);
-	  $excerpt = str_replace(']]>', ']]&gt;', $excerpt);
-	  $excerpt = strip_tags($excerpt);
-	  $excerpt_length = apply_filters('excerpt_length', 55);
-	  $excerpt_more = apply_filters('excerpt_more', ' ' . '[...]');
-
-	  $words = preg_split("/[\n\r\t ]+/", $excerpt, $excerpt_length + 1, PREG_SPLIT_NO_EMPTY);
-	  if ( count($words) > $excerpt_length ) {
-	      array_pop($words);
-	      $excerpt = implode(' ', $words);
-	      $excerpt = $excerpt . $excerpt_more;
+	  if (!$more_pos = strpos($excerpt, '<!--more-->')) {
+		if (function_exists('qtrans_useCurrentLanguageIfNotFoundUseDefaultLanguage')) {
+		      $excerpt = qtrans_useCurrentLanguageIfNotFoundUseDefaultLanguage($excerpt);
+		}
+		
+		$excerpt = strip_shortcodes( $excerpt );
+		$excerpt = apply_filters('the_content', $excerpt);
+		$excerpt = str_replace(']]>', ']]&gt;', $excerpt);
+		$excerpt = strip_tags($excerpt);
+		$excerpt_length = apply_filters('excerpt_length', 55);
+		$excerpt_more = apply_filters('excerpt_more', ' ' . '[...]');
+      
+		$words = preg_split("/[\n\r\t ]+/", $excerpt, $excerpt_length + 1, PREG_SPLIT_NO_EMPTY);
+		if ( count($words) > $excerpt_length ) {
+		    array_pop($words);
+		    $excerpt = implode(' ', $words);
+		    $excerpt = $excerpt . $excerpt_more;
+		} else {
+		    $excerpt = implode(' ', $words);
+		}
 	  } else {
-	      $excerpt = implode(' ', $words);
+		$excerpt = substr($excerpt, 0, $more_pos);
 	  }
       }
 
