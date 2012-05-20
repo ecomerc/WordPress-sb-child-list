@@ -96,4 +96,6 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  
  2.8:	Minor update, added support for excerpt more tag if used.
   
-  
+ 2.9:	Minor Update, added order parameter to sb_cat_list shortcode. Default ordering to post title.
+ 
+ 

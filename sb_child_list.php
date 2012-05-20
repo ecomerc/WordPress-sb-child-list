@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 2.8
+ Version: 2.9
 
  Changelog:
  0.1:	Basic functionality.
@@ -31,6 +31,7 @@
  2.6:	Added custom excerpt function so that when using [post_excerpt] in the template if you don't enter a manual one it will generate it from the post body as Wordpress does normally.
  2.7:	Minor update, added support for qTranslate
  2.8:	Minor update, added support for excerpt more tag if used.
+ 2.9:	Minor Update, added order parameter to sb_cat_list shortcode. Default ordering to post title.
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -148,13 +149,17 @@ function sb_cl_get_the_excerpt($id=false) {
       return $excerpt;
   }
 
-function sb_cl_render_cat_list($category, $limit=false, $template_id) {
+function sb_cl_render_cat_list($category, $limit=false, $order=false, $template_id = 0) {
 	global $wp_query, $posts;
 	
 	$settings = sb_cl_get_settings();
 	
 	if (!$limit) {
 		$limit = 1000;
+	}
+	
+	if (!trim($order)) {
+		$order = 'post_title';
 	}
 	
 	if ($template_id <= 1) {
@@ -175,6 +180,7 @@ function sb_cl_render_cat_list($category, $limit=false, $template_id) {
 	$cat_id = sb_cl_get_cat_id_from_name($category);
         $qs = "cat=" . $cat_id . '&post_status=publish';
         $qs .= '&posts_per_page=' . $limit;
+	$qs .= '&orderby=' . $order;
 	
         $cat_posts = new WP_Query($qs);
         
@@ -361,7 +367,7 @@ function sb_cl_filter_post($atts, $content, $tag) {
 			$return = sb_cl_render_child_list($template, false, @$atts['nest_level'], @$atts['order']);
 			break;
 		case 'sb_cat_list':
-			$return = sb_cl_render_cat_list($atts['category'], $atts['limit'], $template);
+			$return = sb_cl_render_cat_list($atts['category'], $atts['limit'], @$atts['order'], $template);
 			break;
 		case 'sb_parent':
 			$return = sb_cl_render_parent();
