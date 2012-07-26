@@ -98,4 +98,6 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
   
  2.9:	Minor Update, added order parameter to sb_cat_list shortcode. Default ordering to post title.
  
+ 3.0:	Minor update. Added ability to fix the parent ID of a child using parent_id="" in sb_child_list shortcode
+ 
  

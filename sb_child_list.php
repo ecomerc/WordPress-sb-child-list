@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 2.9
+ Version: 3.0
 
  Changelog:
  0.1:	Basic functionality.
@@ -32,6 +32,7 @@
  2.7:	Minor update, added support for qTranslate
  2.8:	Minor update, added support for excerpt more tag if used.
  2.9:	Minor Update, added order parameter to sb_cat_list shortcode. Default ordering to post title.
+ 3.0:	Minor update. Added ability to fix the parent ID of a child using parent_id="" in sb_child_list shortcode
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -364,7 +365,7 @@ function sb_cl_filter_post($atts, $content, $tag) {
 
 	switch ($tag) {
 		case 'sb_child_list':
-			$return = sb_cl_render_child_list($template, false, @$atts['nest_level'], @$atts['order']);
+			$return = sb_cl_render_child_list($template, @$atts['parent_id'], @$atts['nest_level'], @$atts['order']);
 			break;
 		case 'sb_cat_list':
 			$return = sb_cl_render_cat_list($atts['category'], $atts['limit'], @$atts['order'], $template);
