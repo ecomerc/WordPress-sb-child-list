@@ -2,7 +2,7 @@
 Contributors: seanbarton
 Tags: page, parent, child, child list, sb_child_list, cms, hierarchy, breadcrumbs, links, category listings, sub pages, sub page, siblings, page siblings
 Requires at least: 3.0
-Tested up to: 3.3
+Tested up to: 3.4
 
 The total in-page navigation solution for Wordpress. Using the shortcodes and widgets provided you can display navigation between your parent, child and sibling items in any format you can think of. Additionally by way of shortcode allows category post functionality.
 
@@ -100,4 +100,5 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  
  3.0:	Minor update. Added ability to fix the parent ID of a child using parent_id="" in sb_child_list shortcode
  
+ 3.1:	Minor update. Added template settings shortcode [post_thumb_url] and removed the default link to large image around [post_thumb]. Allows you to set up your own link around the thumb to go wherever you like.. be it larger image or the post itself
  

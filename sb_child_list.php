@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 3.0
+ Version: 3.1
 
  Changelog:
  0.1:	Basic functionality.
@@ -33,6 +33,7 @@
  2.8:	Minor update, added support for excerpt more tag if used.
  2.9:	Minor Update, added order parameter to sb_cat_list shortcode. Default ordering to post title.
  3.0:	Minor update. Added ability to fix the parent ID of a child using parent_id="" in sb_child_list shortcode
+ 3.1:	Minor update. Added template settings shortcode [post_thumb_url] and removed the default link to large image around [post_thumb]. Allows you to set up your own link around the thumb to go wherever you like.. be it larger image or the post itself
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -210,15 +211,14 @@ function sb_cl_render_cat_list($category, $limit=false, $order=false, $template_
 		if (function_exists('get_the_post_thumbnail')) {
 			//$template = str_replace('[post_thumb]', get_the_post_thumbnail( $id, 'thumbnail', array('class' => 'alignleft')), $template);
 			
-			$thumb = '';
+			$thumb = $large_image_url = '';
 			if ( has_post_thumbnail()) {
 			  $large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id($id), 'large');
-			  $thumb .= '<a href="' . $large_image_url[0] . '" title="' . the_title_attribute('echo=0') . '" >';
 			  $thumb .= get_the_post_thumbnail($id, 'thumbnail', array('class' => 'alignleft')); 
-			  $thumb .= '</a>';
 			}
 			
 			$template = str_replace('[post_thumb]', $thumb, $template);
+			$template = str_replace('[post_thumb_url]', $large_image_url, $template);
 		}		
 
 		$html .= $template;
@@ -326,9 +326,18 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 				$template = str_replace('[post_image2]', ($post_image2 ? '<img class="list_post_item" src="' . $post_image2 . '" />':''), $template);
 				
 				$template = str_replace('[post_permalink]', get_permalink($child->ID), $template);
-				if (function_exists('get_the_post_thumbnail')) {
-					$template = str_replace('[post_thumb]', get_the_post_thumbnail( $child->ID, 'thumbnail', array('class' => 'alignleft')), $template);
+				//if (function_exists('get_the_post_thumbnail')) {
+					//$template = str_replace('[post_thumb]', get_the_post_thumbnail( $child->ID, 'thumbnail', array('class' => 'alignleft')), $template);
+				//}
+	
+				$thumb = $large_image_url = '';
+				if ( has_post_thumbnail()) {
+				  $large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id($child->ID), 'large');
+				  $thumb .= get_the_post_thumbnail($child->ID, 'thumbnail', array('class' => 'alignleft')); 
 				}
+				
+				$template = str_replace('[post_thumb]', $thumb, $template);
+				$template = str_replace('[post_thumb_url]', $large_image_url, $template);				
 
 				$return .= $template;
 
@@ -509,7 +518,7 @@ function sb_cl_admin_page() {
 	echo '	<tr>
 				<td style="vertical-align: top;">
 					<div>' . __('Child List Loop Content', 'sb') . '</div>
-					<div style="' . $detail_style . '">' . __('Template for the loop part of the list. Use the hooks [post_title], [post_image] (SB Uploader), [post_image2] (SB Uploader Additional), [post_thumb] (WP), [post_permalink], [post_excerpt]. The hook [post_class] can be used to output a classname only if the item relates to the current page. Good for highlighing the current page in a kind of menu structure.', 'sb') . '</div>
+					<div style="' . $detail_style . '">' . __('Template for the loop part of the list. Use the hooks [post_title], [post_image] (SB Uploader), [post_image2] (SB Uploader Additional), [post_thumb] (WP), [post_thumb_url] (WP), [post_permalink], [post_excerpt]. The hook [post_class] can be used to output a classname only if the item relates to the current page. Good for highlighing the current page in a kind of menu structure.', 'sb') . '</div>
 				</td>
 				<td style="vertical-align: top;">
 					<textarea rows="6" cols="70" name="settings[child_list_loop_content]">' . wp_specialchars($settings->child_list_loop_content, true) . '</textarea>
@@ -566,7 +575,7 @@ function sb_cl_admin_page() {
 				echo '	<tr>
 						<td style="vertical-align: top;">
 							<div>' . __('Child List Loop Content', 'sb') . '</div>
-							<div style="' . $detail_style . '">' . __('Template ' . $i . ' for the loop part of the list. Use the hooks [post_title], [post_image] (SB Uploader), [post_image2] (SB Uploader Additional), [post_thumb] (WP), [post_permalink], [post_excerpt].', 'sb') . '</div>
+							<div style="' . $detail_style . '">' . __('Template ' . $i . ' for the loop part of the list. Use the hooks [post_title], [post_image] (SB Uploader), [post_image2] (SB Uploader Additional), [post_thumb] (WP), [post_thumb_url] (WP), [post_permalink], [post_excerpt].', 'sb') . '</div>
 						</td>
 						<td style="vertical-align: top;">
 							<textarea rows="6" cols="70" name="settings[child_list_loop_content_' . $i . ']">' . wp_specialchars($settings->$func, true) . '</textarea>
