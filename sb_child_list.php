@@ -285,6 +285,10 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 		$id = get_the_ID();
 	}
 	
+	if (!$id) {
+		return; //in the event the $id variable is still empty.
+	}
+	
 	$sql = 'SELECT ID, post_title, post_type
 			FROM ' . $wpdb->posts . '
 			WHERE
@@ -477,7 +481,7 @@ function sb_cl_render_parent($child_id=false) {
 
 function sb_cl_init_admin_page() {
 	global $sb_cl_file;
-	add_options_page('SB Child List Options', 'SB Child List', 8, $sb_cl_file, 'sb_cl_admin_page');
+	add_options_page('SB Child List Options', 'SB Child List', 'publish_posts', $sb_cl_file, 'sb_cl_admin_page');
 }
 
 function sb_cl_admin_page() {
