@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 3.1
+ Version: 3.3
 
  Changelog:
  0.1:	Basic functionality.
@@ -34,6 +34,8 @@
  2.9:	Minor Update, added order parameter to sb_cat_list shortcode. Default ordering to post title.
  3.0:	Minor update. Added ability to fix the parent ID of a child using parent_id="" in sb_child_list shortcode
  3.1:	Minor update. Added template settings shortcode [post_thumb_url] and removed the default link to large image around [post_thumb]. Allows you to set up your own link around the thumb to go wherever you like.. be it larger image or the post itself
+ 3.2:	Bug Fix update. [post_image] didn't work from my 3.1 update because of the logic using the incorrect post ID. Sorted now.
+ 3.3:	Minor update. Added new option to turn off the siblings list on the lowest level. This means that when you get to the bottom of the page tree the child list will disappear if this option is utilised
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -331,7 +333,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 				//}
 	
 				$thumb = $large_image_url = '';
-				if ( has_post_thumbnail()) {
+				if ( has_post_thumbnail($child->ID)) {
 				  $large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id($child->ID), 'large');
 				  $thumb .= get_the_post_thumbnail($child->ID, 'thumbnail', array('class' => 'alignleft')); 
 				}
@@ -350,7 +352,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 		}
 
 		$return .= $template_end;
-	} else if ($nest_level == 1) {
+	} else if (!@$settings->no_siblings_on_bottom_level && $nest_level == 1) {
 		$parent = get_page($id);
 		if ($parent->post_parent) {
 			$return .= sb_cl_render_child_list($template_id, $parent->post_parent, $nest_level, $order);
@@ -618,6 +620,21 @@ function sb_cl_admin_page() {
 	for ($i = 0; $i <= 5; $i++) {
 		echo '<option value="' . $i . '" ' . ($settings->child_list_nesting_level == $i ? 'selected="selected"':'') . '>' . ($i ? $i:__('All Levels', 'sb')) . '</option>';
 	}
+
+	echo '		</td>
+			</tr>';
+			
+	echo '	<tr>
+				<td style="vertical-align: top;">
+					<div>' . __('Siblings at lowest level?', 'sb') . '</div>
+					<div style="' . $detail_style . '">' . __('Should page siblings be shown at the lowest level or not (recommended yes)', 'sb') . '</div>
+				</td>
+				<td style="vertical-align: top;">
+					<select style="width: 100px;" name="settings[no_siblings_on_bottom_level]">';
+
+		echo '<option value="0" ' . ($settings->no_siblings_on_bottom_level == 0 ? 'selected="selected"':'') . '>Yes</option>';
+		echo '<option value="1" ' . ($settings->no_siblings_on_bottom_level == 1 ? 'selected="selected"':'') . '>No</option>';
+		
 
 	echo '		</td>
 			</tr>';
