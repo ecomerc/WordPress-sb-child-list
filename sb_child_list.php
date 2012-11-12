@@ -832,7 +832,7 @@ class sb_cl_pages_widget extends WP_Widget {
 			global $post;
 			if ($parent = $post->post_parent) {
 				if ($parent = get_post($parent)) {
-					echo '<ul><li><a href="' . get_permalink($parent->ID) . '">' . __('Back to') . ' ' . $parent->post_title . '</a></li></ul>';
+					echo '<ul><li><a href="' . get_permalink($parent->ID) . '">' . $parent->post_title . '</a></li></ul>';
 				}
 			}
 		}
