@@ -106,3 +106,5 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  
  3.3:	Minor update. Added new option to turn off the siblings list on the lowest level. This means that when you get to the bottom of the page tree the child list will disappear if this option is utilised
  
+ 3.4:	Minor update. Fix to the child list widget templating system. It wasn't working for anything but template 1. Now rectified.
+ 

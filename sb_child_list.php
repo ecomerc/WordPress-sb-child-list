@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 3.3
+ Version: 3.4
 
  Changelog:
  0.1:	Basic functionality.
@@ -36,6 +36,7 @@
  3.1:	Minor update. Added template settings shortcode [post_thumb_url] and removed the default link to large image around [post_thumb]. Allows you to set up your own link around the thumb to go wherever you like.. be it larger image or the post itself
  3.2:	Bug Fix update. [post_image] didn't work from my 3.1 update because of the logic using the incorrect post ID. Sorted now.
  3.3:	Minor update. Added new option to turn off the siblings list on the lowest level. This means that when you get to the bottom of the page tree the child list will disappear if this option is utilised
+ 3.4:	Minor update. Fix to the child list widget templating system. It wasn't working for anything but template 1. Now rectified.
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -814,7 +815,7 @@ class sb_cl_pages_widget extends WP_Widget {
         extract($args);
         $title = apply_filters('widget_title', $instance['title']);
         $text = apply_filters('widget_text', $instance['text']);
-        $template = (isset($instance['template_id']) ? $instance['text']:1);
+        $template = (isset($instance['template_id']) ? $instance['template_id']:1);
 	$child_list = sb_cl_render_child_list($template, false);
 	
 	if ($child_list) {
