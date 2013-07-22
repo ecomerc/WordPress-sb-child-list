@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 3.4
+ Version: 3.5
 
  Changelog:
  0.1:	Basic functionality.
@@ -37,6 +37,7 @@
  3.2:	Bug Fix update. [post_image] didn't work from my 3.1 update because of the logic using the incorrect post ID. Sorted now.
  3.3:	Minor update. Added new option to turn off the siblings list on the lowest level. This means that when you get to the bottom of the page tree the child list will disappear if this option is utilised
  3.4:	Minor update. Fix to the child list widget templating system. It wasn't working for anything but template 1. Now rectified.
+ 3.5:	Minor update. Added ability to order the child list using both order and sort options. orderby allows you to order on a specific field and order is ASC or DESC
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -250,7 +251,7 @@ function sb_cl_get_cat_id_from_name($cat) {
         return $cat_id;
 }
     
-function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $order=false) {
+function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $order=false, $orderby=false) {
 	global $wpdb, $wp_query;
 	
 	$this_page_id = $wp_query->get_queried_object_id();
@@ -259,8 +260,12 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 	$nest_level++;
 	$settings = sb_cl_get_settings();
 	
-	if (!trim($order)) {
-		$order = 'menu_order, post_title';
+	if (!$order) {
+		$order = 'ASC';
+	}
+	
+	if (!trim($orderby)) {
+		$orderby = 'menu_order, post_title';
 	}
 	
 	if ($template_id <= 1) {
@@ -296,7 +301,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 				post_status = \'publish\'
 				AND post_parent = ' . $id . '
 				AND post_type = \'page\'
-			ORDER BY ' . $order;
+			ORDER BY ' . $orderby . ' ' . $order;
 
 	if ($children = $wpdb->get_results($sql)) {
 		$return .= $template_start;
@@ -381,7 +386,7 @@ function sb_cl_filter_post($atts, $content, $tag) {
 
 	switch ($tag) {
 		case 'sb_child_list':
-			$return = sb_cl_render_child_list($template, @$atts['parent_id'], @$atts['nest_level'], @$atts['order']);
+			$return = sb_cl_render_child_list($template, @$atts['parent_id'], @$atts['nest_level'], @$atts['order'], @$atts['orderby']);
 			break;
 		case 'sb_cat_list':
 			$return = sb_cl_render_cat_list($atts['category'], $atts['limit'], @$atts['order'], $template);

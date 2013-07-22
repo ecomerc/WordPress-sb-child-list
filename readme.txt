@@ -2,7 +2,7 @@
 Contributors: seanbarton
 Tags: page, parent, child, child list, sb_child_list, cms, hierarchy, breadcrumbs, links, category listings, sub pages, sub page, siblings, page siblings
 Requires at least: 3.0
-Tested up to: 3.4.2
+Tested up to: 3.6.*
 
 The total in-page navigation solution for Wordpress. Using the shortcodes and widgets provided you can display navigation between your parent, child and sibling items in any format you can think of. Additionally by way of shortcode allows category post functionality.
 
@@ -22,7 +22,7 @@ You can also use this shortcode: [sb_cat_list category=CatName] which does what 
 
 The plugin creates a widget for use also. This works if there is a sub page present. Much like a sub pages widget or similar.
 
-I have added a shortcode for sibling navigation. You can use [sb_sibling_next] and [sb_sibling_prev] to show links to next and previous pages ordered by menu order followed by post title order. Handy indeed!
+I have added a shortcode for sibling navigation. You can use [sb_sibling_next] and [sb_sibling_prev] to show links to next and previous pages ordered by menu order followed by post title order. Handy indeed! You can use the argument orderby to select a field and order to choose ASC or DESC.
 
 There is a simple templating sytstem to allow multiple templates for [sb_child_list] and [sb_cat_list] with the argument 'template' ([sb_child_list template="2"]). Also added excerpt support and support for the SB Uploader Plugin custom fields (custom field called post_image will show if necessary).
 
@@ -107,4 +107,7 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  3.3:	Minor update. Added new option to turn off the siblings list on the lowest level. This means that when you get to the bottom of the page tree the child list will disappear if this option is utilised
  
  3.4:	Minor update. Fix to the child list widget templating system. It wasn't working for anything but template 1. Now rectified.
+ 
+ 3.5:	Minor update. Added ability to order the child list using both order and sort options. orderby allows you to order on a specific field and order is ASC or DESC
+ 
  
