@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 3.5
+ Version: 3.6
 
  Changelog:
  0.1:	Basic functionality.
@@ -38,6 +38,7 @@
  3.3:	Minor update. Added new option to turn off the siblings list on the lowest level. This means that when you get to the bottom of the page tree the child list will disappear if this option is utilised
  3.4:	Minor update. Fix to the child list widget templating system. It wasn't working for anything but template 1. Now rectified.
  3.5:	Minor update. Added ability to order the child list using both order and sort options. orderby allows you to order on a specific field and order is ASC or DESC
+ 3.6:	Minor update. Added the ability to add thumb_size="whatever" to the shortcode which will cause the post_thumb template tag to return the size you wanted rather than the thumbnail size for the site
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -155,13 +156,17 @@ function sb_cl_get_the_excerpt($id=false) {
       return $excerpt;
   }
 
-function sb_cl_render_cat_list($category, $limit=false, $order=false, $template_id = 0) {
+function sb_cl_render_cat_list($category, $limit=false, $order=false, $template_id = 0, $thumb_size=false) {
 	global $wp_query, $posts;
 	
 	$settings = sb_cl_get_settings();
 	
 	if (!$limit) {
 		$limit = 1000;
+	}
+	
+	if (!$thumb_size) {
+		$thumb_size = 'thumb';
 	}
 	
 	if (!trim($order)) {
@@ -218,7 +223,7 @@ function sb_cl_render_cat_list($category, $limit=false, $order=false, $template_
 			$thumb = $large_image_url = '';
 			if ( has_post_thumbnail()) {
 			  $large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id($id), 'large');
-			  $thumb .= get_the_post_thumbnail($id, 'thumbnail', array('class' => 'alignleft')); 
+			  $thumb .= get_the_post_thumbnail($id, $thumb_size, array('class' => 'alignleft')); 
 			}
 			
 			$template = str_replace('[post_thumb]', $thumb, $template);
@@ -251,7 +256,7 @@ function sb_cl_get_cat_id_from_name($cat) {
         return $cat_id;
 }
     
-function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $order=false, $orderby=false) {
+function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $order=false, $orderby=false, $thumb_size=false) {
 	global $wpdb, $wp_query;
 	
 	$this_page_id = $wp_query->get_queried_object_id();
@@ -262,6 +267,10 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 	
 	if (!$order) {
 		$order = 'ASC';
+	}
+	
+	if (!$thumb_size) {
+		$thumb_size = 'thumb';
 	}
 	
 	if (!trim($orderby)) {
@@ -345,7 +354,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 				$thumb = $large_image_url = '';
 				if ( has_post_thumbnail($child->ID)) {
 				  $large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id($child->ID), 'large');
-				  $thumb .= get_the_post_thumbnail($child->ID, 'thumbnail', array('class' => 'alignleft')); 
+				  $thumb .= get_the_post_thumbnail($child->ID, $thumb_size, array('class' => 'alignleft')); 
 				}
 				
 				$template = str_replace('[post_thumb]', $thumb, $template);
@@ -386,10 +395,10 @@ function sb_cl_filter_post($atts, $content, $tag) {
 
 	switch ($tag) {
 		case 'sb_child_list':
-			$return = sb_cl_render_child_list($template, @$atts['parent_id'], @$atts['nest_level'], @$atts['order'], @$atts['orderby']);
+			$return = sb_cl_render_child_list($template, @$atts['parent_id'], @$atts['nest_level'], @$atts['order'], @$atts['orderby'], @$atts['thumb_size']);
 			break;
 		case 'sb_cat_list':
-			$return = sb_cl_render_cat_list($atts['category'], $atts['limit'], @$atts['order'], $template);
+			$return = sb_cl_render_cat_list($atts['category'], $atts['limit'], @$atts['order'], $template, @$atts['thumb_size']);
 			break;
 		case 'sb_parent':
 			$return = sb_cl_render_parent();

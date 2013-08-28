@@ -110,4 +110,6 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  
  3.5:	Minor update. Added ability to order the child list using both order and sort options. orderby allows you to order on a specific field and order is ASC or DESC
  
+ 3.6:	Minor update. Added the ability to add thumb_size="whatever" to the shortcode which will cause the post_thumb template tag to return the size you wanted rather than the thumbnail size for the site
+ 
  
