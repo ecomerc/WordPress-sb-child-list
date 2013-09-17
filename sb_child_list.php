@@ -6,39 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 3.6
-
- Changelog:
- 0.1:	Basic functionality.
- 0.5:	Admin Page added.
- 0.9:	Templating and nest limiting.
- 1.0:	Added backlink from child to parent.
- 1.1:	Added sb_cl_cat_list functionality
- 1.2:	Now using get_permalink for the child list. Means the guid field is no longer relied on and links always work
- 1.3:	Added post_thumb to the templating system. Uses the WP Post Thumbnail system. Contributed by a plugin user.
- 1.4:	Fixed post_thumb option whereby the function didn't exist on some installs. Uses the get_the_post_thumb function to operate
- 1.5:	Updated sb_parent permalink from guid to get_permalink
- 1.6:	Added templating for the shortcodes (multiple instances of the shortcode in different formats now possible) and support for the_excerpt and SB Uploader output (custom fields called post_image and post_image2 will be recognised)
- 1.7:	Forced page excerpt support in case it wasn't already added. Added tooltip for post_excerpt
- 1.8:	Added ability to sort a child list by any field in the wp_posts table by adding order="field_name" to the shortcode
- 1.9:	Added child list widget to show sub pages of current page or any other page of your choice.
- 2.0: 	Fixed widget title issue whereby the title was being changed to 1,2,3 depending on the template used.
- 2.1:	Child list and widget now shows ancestors if there are no children. Added parent link option to widget
- 2.2:	Fixed issue with siblings showing in normal child list and then repeating themselves breaking the site.
- 2.3:	Added two new shortcodes sb_sibling_next and sb_sibling_prev. Kind of like next and previous navigation for posts. Uses menu order for display followed by alphabetical post titles.
- 2.4:	Added sb_grandparent so that you can feature one more level of parentage as a link back. Added getText format on "Back to" text for localisation.
- 2.5:	When [post_class] is used and the item relates to the current page then a classname will be added: 'current_page_item sb_cl_current_page' to allow you to style individual rows using CSS making the current page stand out perhaps.
- 2.6:	Added custom excerpt function so that when using [post_excerpt] in the template if you don't enter a manual one it will generate it from the post body as Wordpress does normally.
- 2.7:	Minor update, added support for qTranslate
- 2.8:	Minor update, added support for excerpt more tag if used.
- 2.9:	Minor Update, added order parameter to sb_cat_list shortcode. Default ordering to post title.
- 3.0:	Minor update. Added ability to fix the parent ID of a child using parent_id="" in sb_child_list shortcode
- 3.1:	Minor update. Added template settings shortcode [post_thumb_url] and removed the default link to large image around [post_thumb]. Allows you to set up your own link around the thumb to go wherever you like.. be it larger image or the post itself
- 3.2:	Bug Fix update. [post_image] didn't work from my 3.1 update because of the logic using the incorrect post ID. Sorted now.
- 3.3:	Minor update. Added new option to turn off the siblings list on the lowest level. This means that when you get to the bottom of the page tree the child list will disappear if this option is utilised
- 3.4:	Minor update. Fix to the child list widget templating system. It wasn't working for anything but template 1. Now rectified.
- 3.5:	Minor update. Added ability to order the child list using both order and sort options. orderby allows you to order on a specific field and order is ASC or DESC
- 3.6:	Minor update. Added the ability to add thumb_size="whatever" to the shortcode which will cause the post_thumb template tag to return the size you wanted rather than the thumbnail size for the site
+ Version: 3.7
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -353,7 +321,10 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 	
 				$thumb = $large_image_url = '';
 				if ( has_post_thumbnail($child->ID)) {
-				  $large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id($child->ID), 'large');
+				  if ($large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id($child->ID), 'large')) {
+					$large_image_url = $large_image_url[0];
+				  }
+				  
 				  $thumb .= get_the_post_thumbnail($child->ID, $thumb_size, array('class' => 'alignleft')); 
 				}
 				

@@ -112,4 +112,7 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  
  3.6:	Minor update. Added the ability to add thumb_size="whatever" to the shortcode which will cause the post_thumb template tag to return the size you wanted rather than the thumbnail size for the site
  
+ 3.7:	Minor update. Fixed Array to string conversion error when using [post_thumb_url] in the template system.
+ 
+ 
  
