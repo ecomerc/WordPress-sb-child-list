@@ -114,5 +114,7 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  
  3.7:	Minor update. Fixed Array to string conversion error when using [post_thumb_url] in the template system.
  
+ 3.8:	Minor update. Added custom fields [custom_field:field_slug] where field_slug is the meta_key of your custom field
+ 
  
  

@@ -6,7 +6,7 @@
  Author: Sean Barton
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 3.7
+ Version: 3.8
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -331,6 +331,22 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 				$template = str_replace('[post_thumb]', $thumb, $template);
 				$template = str_replace('[post_thumb_url]', $large_image_url, $template);				
 
+				if ($fields = sb_cl_str_pos_all($template, '[custom_field:')) {
+					$custom_fields = array();
+					
+					foreach ($fields as $pos) {
+						$custom_field_string = substr($template, $pos);
+						$bracket_pos = strpos($custom_field_string, ']');
+						$custom_field_instance = str_replace('[custom_field:', '', substr($custom_field_string, 0, $bracket_pos));
+						$custom_fields[] = $custom_field_instance;
+					}
+					
+					foreach ($custom_fields as $custom_field) {
+						$template = str_replace('[custom_field:' . $custom_field . ']', get_post_meta($child->ID, $custom_field, true), $template);
+					}
+				}
+				
+
 				$return .= $template;
 
 				if (!$settings->child_list_nesting_level || $nest_level < $settings->child_list_nesting_level) {
@@ -351,6 +367,28 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 
 	return $return;
 }
+
+function sb_cl_str_pos_all($haystack, $needle){ 
+    $s=0; 
+    $i=0;
+    
+    $return = false; 
+    
+    while (is_integer($i)){ 
+        $i = strpos($haystack, $needle, $s); 
+        
+        if (is_integer($i)) { 
+            $aStrPos[] = $i; 
+            $s = ($i + strlen($needle)); 
+        } 
+    }
+    
+    if (isset($aStrPos)) { 
+        $return = $aStrPos; 
+    }
+    
+    return $return;
+} 
 
 function sb_cl_display_feedback($msg) {
 	echo '<div id="message" class="updated fade" style="margin-top: 5px; padding: 7px;">' . $msg . '</div>';
@@ -510,7 +548,7 @@ function sb_cl_admin_page() {
 	echo '	<tr>
 				<td style="vertical-align: top;">
 					<div>' . __('Child List Loop Content', 'sb') . '</div>
-					<div style="' . $detail_style . '">' . __('Template for the loop part of the list. Use the hooks [post_title], [post_image] (SB Uploader), [post_image2] (SB Uploader Additional), [post_thumb] (WP), [post_thumb_url] (WP), [post_permalink], [post_excerpt]. The hook [post_class] can be used to output a classname only if the item relates to the current page. Good for highlighing the current page in a kind of menu structure.', 'sb') . '</div>
+					<div style="' . $detail_style . '">' . __('Template for the loop part of the list. Use the hooks [post_title], [post_image] (SB Uploader), [post_image2] (SB Uploader Additional), [post_thumb] (WP), [post_thumb_url] (WP), [post_permalink], [post_excerpt]. The hook [post_class] can be used to output a classname only if the item relates to the current page. Good for highlighing the current page in a kind of menu structure. Custom fields can be added using [custom_field:field_key] where field_key is the meta_key of your custom field.', 'sb') . '</div>
 				</td>
 				<td style="vertical-align: top;">
 					<textarea rows="6" cols="70" name="settings[child_list_loop_content]">' . wp_specialchars($settings->child_list_loop_content, true) . '</textarea>
