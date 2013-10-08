@@ -115,6 +115,8 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  3.7:	Minor update. Fixed Array to string conversion error when using [post_thumb_url] in the template system.
  
  3.8:	Minor update. Added custom fields [custom_field:field_slug] where field_slug is the meta_key of your custom field
+
+ 3.9:	Minor update. Added ability for sb_child_list shortcode to now accept a category. This means you can show child pages in sub groups accordingly using [sb_child_list category="cat_name"]. Also removed SQL query for child list in favour of query_posts function.
  
  
  

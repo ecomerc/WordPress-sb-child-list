@@ -3,10 +3,10 @@
 /*
  Plugin Name: SB Child List
  Description: The total in-page navigation solution for Wordpress. Using the shortcodes and widgets provided you can display navigation between your parent, child and sibling items in any format you can think of.
- Author: Sean Barton
+ Author: Sean Barton (Tortoise IT)
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 3.8
+ Version: 3.9
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -224,7 +224,7 @@ function sb_cl_get_cat_id_from_name($cat) {
         return $cat_id;
 }
     
-function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $order=false, $orderby=false, $thumb_size=false) {
+function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $order=false, $orderby=false, $thumb_size=false, $category=false) {
 	global $wpdb, $wp_query;
 	
 	$this_page_id = $wp_query->get_queried_object_id();
@@ -272,24 +272,33 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 		return; //in the event the $id variable is still empty.
 	}
 	
-	$sql = 'SELECT ID, post_title, post_type
-			FROM ' . $wpdb->posts . '
-			WHERE
-				post_status = \'publish\'
-				AND post_parent = ' . $id . '
-				AND post_type = \'page\'
-			ORDER BY ' . $orderby . ' ' . $order;
-
-	if ($children = $wpdb->get_results($sql)) {
+	global $wp_query;
+	$temp_query = $wp_query;
+	
+	$args = array(
+		'post_type'=>'page'
+		, 'post_status'=>'publish'
+		, 'posts_per_page'=>$limit
+		, 'post_parent'=>$id
+		, 'orderby'=>$orderby
+		, 'order'=>$order
+	);
+	
+	$cat_id = sb_cl_get_cat_id_from_name($category);
+	if ($category && $cat_id) {
+		$args['cat'] = $cat_id;
+	}
+	
+        $posts = new WP_Query($args);
+	        
+	if ($posts->have_posts()) {
 		$return .= $template_start;
-
-		foreach ($children as $i=>$child) {
-			if ($child->post_type == 'post') {
-				$p = get_post($child->ID);
-			} else {
-				$p = get_page($child->ID);
-			}
-			
+		
+		while ($posts->have_posts()) {
+			$posts->the_post();
+			update_post_caches($posts);	
+	
+			$p = get_page(get_the_ID());
 			if ($p) {
 				$post_class = '';
 				$return .= $template_start_loop;
@@ -309,23 +318,23 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 				$template = str_replace('[post_class]', $post_class, $template);
 				$template = str_replace('[post_excerpt]', sb_cl_get_the_excerpt($p->ID), $template);
 				
-				$post_image = get_post_meta($child->ID, 'post_image', true);
-				$post_image2 = get_post_meta($child->ID, 'post_image2', true);
+				$post_image = get_post_meta($p->ID, 'post_image', true);
+				$post_image2 = get_post_meta($p->ID, 'post_image2', true);
 				$template = str_replace('[post_image]', ($post_image ? '<img class="list_post_item" src="' . $post_image . '" />':''), $template);
 				$template = str_replace('[post_image2]', ($post_image2 ? '<img class="list_post_item" src="' . $post_image2 . '" />':''), $template);
 				
-				$template = str_replace('[post_permalink]', get_permalink($child->ID), $template);
+				$template = str_replace('[post_permalink]', get_permalink($p->ID), $template);
 				//if (function_exists('get_the_post_thumbnail')) {
 					//$template = str_replace('[post_thumb]', get_the_post_thumbnail( $child->ID, 'thumbnail', array('class' => 'alignleft')), $template);
 				//}
 	
 				$thumb = $large_image_url = '';
-				if ( has_post_thumbnail($child->ID)) {
-				  if ($large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id($child->ID), 'large')) {
+				if ( has_post_thumbnail($p->ID)) {
+				  if ($large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id($p->ID), 'large')) {
 					$large_image_url = $large_image_url[0];
 				  }
 				  
-				  $thumb .= get_the_post_thumbnail($child->ID, $thumb_size, array('class' => 'alignleft')); 
+				  $thumb .= get_the_post_thumbnail($p->ID, $thumb_size, array('class' => 'alignleft')); 
 				}
 				
 				$template = str_replace('[post_thumb]', $thumb, $template);
@@ -358,6 +367,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 		}
 
 		$return .= $template_end;
+		
 	} else if (!@$settings->no_siblings_on_bottom_level && $nest_level == 1) {
 		$parent = get_page($id);
 		if ($parent->post_parent) {
@@ -404,7 +414,7 @@ function sb_cl_filter_post($atts, $content, $tag) {
 
 	switch ($tag) {
 		case 'sb_child_list':
-			$return = sb_cl_render_child_list($template, @$atts['parent_id'], @$atts['nest_level'], @$atts['order'], @$atts['orderby'], @$atts['thumb_size']);
+			$return = sb_cl_render_child_list($template, @$atts['parent_id'], @$atts['nest_level'], @$atts['order'], @$atts['orderby'], @$atts['thumb_size'], @$atts['category']);
 			break;
 		case 'sb_cat_list':
 			$return = sb_cl_render_cat_list($atts['category'], $atts['limit'], @$atts['order'], $template, @$atts['thumb_size']);
