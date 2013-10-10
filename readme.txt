@@ -118,5 +118,7 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
 
  3.9:	Minor update. Added ability for sb_child_list shortcode to now accept a category. This means you can show child pages in sub groups accordingly using [sb_child_list category="cat_name"]. Also removed SQL query for child list in favour of query_posts function.
  
+ 4.0:	Minor update. Fixed a variable bug in the custom fields system which cropped up in 3.9
+ 
  
  

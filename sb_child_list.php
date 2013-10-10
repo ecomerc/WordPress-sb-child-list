@@ -6,7 +6,7 @@
  Author: Sean Barton (Tortoise IT)
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 3.9
+ Version: 4.0
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -341,6 +341,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 				$template = str_replace('[post_thumb_url]', $large_image_url, $template);				
 
 				if ($fields = sb_cl_str_pos_all($template, '[custom_field:')) {
+
 					$custom_fields = array();
 					
 					foreach ($fields as $pos) {
@@ -349,9 +350,9 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 						$custom_field_instance = str_replace('[custom_field:', '', substr($custom_field_string, 0, $bracket_pos));
 						$custom_fields[] = $custom_field_instance;
 					}
-					
+
 					foreach ($custom_fields as $custom_field) {
-						$template = str_replace('[custom_field:' . $custom_field . ']', get_post_meta($child->ID, $custom_field, true), $template);
+						$template = str_replace('[custom_field:' . $custom_field . ']', get_post_meta($p->ID, $custom_field, true), $template);
 					}
 				}
 				
