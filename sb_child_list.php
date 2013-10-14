@@ -6,7 +6,7 @@
  Author: Sean Barton (Tortoise IT)
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 4.0
+ Version: 4.1
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -220,12 +220,20 @@ function sb_cl_get_cat_id_from_name($cat) {
                     OR slug LIKE "' . mysql_real_escape_string($cat) . '"
         ';
         $cat_id = $wpdb->get_var($sql);
+
+	if (isset($_GET['debug'])) {
+		echo '<pre>';
+		echo $sql;
+		echo '<br />' . $cat_id;
+		echo '</pre>';
+	}
         
         return $cat_id;
 }
     
-function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $order=false, $orderby=false, $thumb_size=false, $category=false) {
-	global $wpdb, $wp_query;
+function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $order=false, $orderby=false, $thumb_size=false, $category=false, $limit=false) {
+	global $wpdb;
+	global $wp_query;
 	
 	$this_page_id = $wp_query->get_queried_object_id();
 
@@ -235,6 +243,10 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 	
 	if (!$order) {
 		$order = 'ASC';
+	}
+	
+	if (!$limit) {
+		$limit = -1;
 	}
 	
 	if (!$thumb_size) {
@@ -272,8 +284,8 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 		return; //in the event the $id variable is still empty.
 	}
 	
-	global $wp_query;
-	$temp_query = $wp_query;
+//	global $wp_query;
+//	$temp_query = $wp_query;
 	
 	$args = array(
 		'post_type'=>'page'
@@ -289,83 +301,91 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 		$args['cat'] = $cat_id;
 	}
 	
-        $posts = new WP_Query($args);
+	if (isset($_GET['debug'])) {
+		echo '<pre>';
+		print_r(func_get_args());
+		print_r($args);
+		echo '</pre>';
+	}
+	
+	$child_posts = new WP_Query($args);
 	        
-	if ($posts->have_posts()) {
+	if ($child_posts) {
 		$return .= $template_start;
 		
-		while ($posts->have_posts()) {
-			$posts->the_post();
-			update_post_caches($posts);	
+		while ($child_posts->have_posts()) {
+			$child_posts->the_post();
 	
-			$p = get_page(get_the_ID());
-			if ($p) {
-				$post_class = '';
-				$return .= $template_start_loop;
-				
-				if ($p->ID == $this_page_id) {
-					$post_class = 'current_page_item sb_cl_current_page';
-				}
-				
-				$title = $p->post_title;
-				
-				if (function_exists('qtrans_useCurrentLanguageIfNotFoundUseDefaultLanguage')) {
-				      $title = qtrans_useCurrentLanguageIfNotFoundUseDefaultLanguage($title);
-				}				
-
-				$template = $template_content;
-				$template = str_replace('[post_title]', $title, $template);
-				$template = str_replace('[post_class]', $post_class, $template);
-				$template = str_replace('[post_excerpt]', sb_cl_get_the_excerpt($p->ID), $template);
-				
-				$post_image = get_post_meta($p->ID, 'post_image', true);
-				$post_image2 = get_post_meta($p->ID, 'post_image2', true);
-				$template = str_replace('[post_image]', ($post_image ? '<img class="list_post_item" src="' . $post_image . '" />':''), $template);
-				$template = str_replace('[post_image2]', ($post_image2 ? '<img class="list_post_item" src="' . $post_image2 . '" />':''), $template);
-				
-				$template = str_replace('[post_permalink]', get_permalink($p->ID), $template);
-				//if (function_exists('get_the_post_thumbnail')) {
-					//$template = str_replace('[post_thumb]', get_the_post_thumbnail( $child->ID, 'thumbnail', array('class' => 'alignleft')), $template);
-				//}
-	
-				$thumb = $large_image_url = '';
-				if ( has_post_thumbnail($p->ID)) {
-				  if ($large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id($p->ID), 'large')) {
-					$large_image_url = $large_image_url[0];
-				  }
-				  
-				  $thumb .= get_the_post_thumbnail($p->ID, $thumb_size, array('class' => 'alignleft')); 
-				}
-				
-				$template = str_replace('[post_thumb]', $thumb, $template);
-				$template = str_replace('[post_thumb_url]', $large_image_url, $template);				
-
-				if ($fields = sb_cl_str_pos_all($template, '[custom_field:')) {
-
-					$custom_fields = array();
-					
-					foreach ($fields as $pos) {
-						$custom_field_string = substr($template, $pos);
-						$bracket_pos = strpos($custom_field_string, ']');
-						$custom_field_instance = str_replace('[custom_field:', '', substr($custom_field_string, 0, $bracket_pos));
-						$custom_fields[] = $custom_field_instance;
-					}
-
-					foreach ($custom_fields as $custom_field) {
-						$template = str_replace('[custom_field:' . $custom_field . ']', get_post_meta($p->ID, $custom_field, true), $template);
-					}
-				}
-				
-
-				$return .= $template;
-
-				if (!$settings->child_list_nesting_level || $nest_level < $settings->child_list_nesting_level) {
-					$return .= sb_cl_render_child_list($template_id, $child->ID, $nest_level, $order);
-				}
-
-				$return .= $template_end_loop;
+			global $post;
+			$p = $post;
+			$post_class = '';
+			$return .= $template_start_loop;
+			
+			if ($p->ID == $this_page_id) {
+				$post_class = 'current_page_item sb_cl_current_page';
 			}
+			
+			$title = $p->post_title;
+			
+			if (function_exists('qtrans_useCurrentLanguageIfNotFoundUseDefaultLanguage')) {
+			      $title = qtrans_useCurrentLanguageIfNotFoundUseDefaultLanguage($title);
+			}				
+
+			$template = $template_content;
+			$template = str_replace('[post_title]', $title, $template);
+			$template = str_replace('[post_class]', $post_class, $template);
+			$template = str_replace('[post_excerpt]', sb_cl_get_the_excerpt($p->ID), $template);
+			
+			$post_image = get_post_meta($p->ID, 'post_image', true);
+			$post_image2 = get_post_meta($p->ID, 'post_image2', true);
+			$template = str_replace('[post_image]', ($post_image ? '<img class="list_post_item" src="' . $post_image . '" />':''), $template);
+			$template = str_replace('[post_image2]', ($post_image2 ? '<img class="list_post_item" src="' . $post_image2 . '" />':''), $template);
+			
+			$template = str_replace('[post_permalink]', get_permalink($p->ID), $template);
+			//if (function_exists('get_the_post_thumbnail')) {
+				//$template = str_replace('[post_thumb]', get_the_post_thumbnail( $child->ID, 'thumbnail', array('class' => 'alignleft')), $template);
+			//}
+
+			$thumb = $large_image_url = '';
+			if ( has_post_thumbnail($p->ID)) {
+			  if ($large_image_url = wp_get_attachment_image_src( get_post_thumbnail_id($p->ID), 'large')) {
+				$large_image_url = $large_image_url[0];
+			  }
+			  
+			  $thumb .= get_the_post_thumbnail($p->ID, $thumb_size, array('class' => 'alignleft')); 
+			}
+			
+			$template = str_replace('[post_thumb]', $thumb, $template);
+			$template = str_replace('[post_thumb_url]', $large_image_url, $template);				
+
+			if ($fields = sb_cl_str_pos_all($template, '[custom_field:')) {
+
+				$custom_fields = array();
+				
+				foreach ($fields as $pos) {
+					$custom_field_string = substr($template, $pos);
+					$bracket_pos = strpos($custom_field_string, ']');
+					$custom_field_instance = str_replace('[custom_field:', '', substr($custom_field_string, 0, $bracket_pos));
+					$custom_fields[] = $custom_field_instance;
+				}
+
+				foreach ($custom_fields as $custom_field) {
+					$template = str_replace('[custom_field:' . $custom_field . ']', get_post_meta($p->ID, $custom_field, true), $template);
+				}
+			}
+			
+
+			$return .= $template;
+
+			if (!$settings->child_list_nesting_level || $nest_level < $settings->child_list_nesting_level) {
+				$return .= sb_cl_render_child_list($template_id, $p->ID, $nest_level, $order);
+			}
+
+			$return .= $template_end_loop;
 		}
+		
+		wp_reset_postdata();
+		wp_reset_query();
 
 		$return .= $template_end;
 		
@@ -415,7 +435,7 @@ function sb_cl_filter_post($atts, $content, $tag) {
 
 	switch ($tag) {
 		case 'sb_child_list':
-			$return = sb_cl_render_child_list($template, @$atts['parent_id'], @$atts['nest_level'], @$atts['order'], @$atts['orderby'], @$atts['thumb_size'], @$atts['category']);
+			$return = sb_cl_render_child_list($template, @$atts['parent_id'], @$atts['nest_level'], @$atts['order'], @$atts['orderby'], @$atts['thumb_size'], @$atts['category'], @$atts['limit']);
 			break;
 		case 'sb_cat_list':
 			$return = sb_cl_render_cat_list($atts['category'], $atts['limit'], @$atts['order'], $template, @$atts['thumb_size']);

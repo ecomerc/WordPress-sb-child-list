@@ -120,5 +120,7 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  
  4.0:	Minor update. Fixed a variable bug in the custom fields system which cropped up in 3.9
  
+ 4.1:	Minor update. Another typo causing some people's systems to show incorrect child content. This has been resolved with the people who have been in touch but please let me know if it needs more work. Also added 'limit' argument to the sb_child_list shortcode. It defaults to -1 (all posts)
+ 
  
  
