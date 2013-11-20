@@ -122,5 +122,6 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  
  4.1:	Minor update. Another typo causing some people's systems to show incorrect child content. This has been resolved with the people who have been in touch but please let me know if it needs more work. Also added 'limit' argument to the sb_child_list shortcode. It defaults to -1 (all posts)
  
+ 4.2:   Minor update. Fixed a bug whereby an empty list would show (including triggering the widget not to hide) even if there are no child posts.
  
  

@@ -6,7 +6,7 @@
  Author: Sean Barton (Tortoise IT)
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 4.1
+ Version: 4.2
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -310,7 +310,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 	
 	$child_posts = new WP_Query($args);
 	        
-	if ($child_posts) {
+	if ($child_posts->have_posts()) {
 		$return .= $template_start;
 		
 		while ($child_posts->have_posts()) {
