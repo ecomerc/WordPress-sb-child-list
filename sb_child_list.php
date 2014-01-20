@@ -6,7 +6,7 @@
  Author: Sean Barton (Tortoise IT)
  Plugin URI: http://www.sean-barton.co.uk
  Author URI: http://www.sean-barton.co.uk
- Version: 4.2
+ Version: 4.3
  */
 
 $sb_cl_dir = str_replace('\\', '/', dirname(__FILE__));
@@ -231,7 +231,7 @@ function sb_cl_get_cat_id_from_name($cat) {
         return $cat_id;
 }
     
-function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $order=false, $orderby=false, $thumb_size=false, $category=false, $limit=false) {
+function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $orderby=false, $order=false, $thumb_size=false, $category=false, $limit=false) {
 	global $wpdb;
 	global $wp_query;
 	
@@ -240,6 +240,21 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 	$return = false;
 	$nest_level++;
 	$settings = sb_cl_get_settings();
+	
+	//for legacy
+	if (in_array(strtoupper(trim($orderby)), array('ASC', 'DESC'))) {
+		//because the name of the shortcode arguments have now been reversed we need this to correct them. In time it will be removed.
+		$order_temp = $orderby;
+		$orderby = $order;
+		$order = $order_temp;
+	}
+	//end for legacy
+	
+	//legacy conversion
+	if ($orderby == 'post_title') {
+	    $orderby = 'title';
+	}
+	//end legacy conversion
 	
 	if (!$order) {
 		$order = 'ASC';
@@ -254,9 +269,9 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 	}
 	
 	if (!trim($orderby)) {
-		$orderby = 'menu_order, post_title';
+		$orderby = 'menu_order';
 	}
-	
+
 	if ($template_id <= 1) {
 		$template_start = $settings->child_list_start;
 		$template_start_loop = $settings->child_list_loop_start;
@@ -378,7 +393,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 			$return .= $template;
 
 			if (!$settings->child_list_nesting_level || $nest_level < $settings->child_list_nesting_level) {
-				$return .= sb_cl_render_child_list($template_id, $p->ID, $nest_level, $order);
+				$return .= sb_cl_render_child_list($template_id, $p->ID, $nest_level, $orderby);
 			}
 
 			$return .= $template_end_loop;
@@ -392,7 +407,7 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 	} else if (!@$settings->no_siblings_on_bottom_level && $nest_level == 1) {
 		$parent = get_page($id);
 		if ($parent->post_parent) {
-			$return .= sb_cl_render_child_list($template_id, $parent->post_parent, $nest_level, $order);
+			$return .= sb_cl_render_child_list($template_id, $parent->post_parent, $nest_level, $orderby);
 		}
 	}
 
@@ -435,7 +450,7 @@ function sb_cl_filter_post($atts, $content, $tag) {
 
 	switch ($tag) {
 		case 'sb_child_list':
-			$return = sb_cl_render_child_list($template, @$atts['parent_id'], @$atts['nest_level'], @$atts['order'], @$atts['orderby'], @$atts['thumb_size'], @$atts['category'], @$atts['limit']);
+			$return = sb_cl_render_child_list($template, @$atts['parent_id'], @$atts['nest_level'], @$atts['orderby'], @$atts['order'], @$atts['thumb_size'], @$atts['category'], @$atts['limit']);
 			break;
 		case 'sb_cat_list':
 			$return = sb_cl_render_cat_list($atts['category'], $atts['limit'], @$atts['order'], $template, @$atts['thumb_size']);
@@ -551,6 +566,18 @@ function sb_cl_admin_page() {
 	echo '<div class="wrap" id="poststuff">';
 
 	echo '<form method="POST">';
+	
+	sb_cl_start_box('Usage Instructions');
+	
+	echo '<p>This plugin is purely shortcode based although it does add a widget to help too. Use the following shortcodes to generate links to child, parent and sibling content in and post type:</p>
+	<p>[sb_child_list] <-- Arguments allowed are: template, nest_level, orderby and order<br />
+	[sb_parent]<br />
+	[sb_grandparent]<br />
+	[sb_cat_list]<br />
+	[sb_sibling_next]<br />
+	[sb_sibling_prev]</p>';
+	
+	sb_cl_end_box();
 	
 	sb_cl_start_box('SB Child List Options');
 

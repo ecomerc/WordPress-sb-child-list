@@ -2,7 +2,7 @@
 Contributors: seanbarton
 Tags: page, parent, child, child list, sb_child_list, cms, hierarchy, breadcrumbs, links, category listings, sub pages, sub page, siblings, page siblings
 Requires at least: 3.0
-Tested up to: 3.6.*
+Tested up to: 3.8.*
 
 The total in-page navigation solution for Wordpress. Using the shortcodes and widgets provided you can display navigation between your parent, child and sibling items in any format you can think of. Additionally by way of shortcode allows category post functionality.
 
@@ -28,7 +28,7 @@ There is a simple templating sytstem to allow multiple templates for [sb_child_l
 
 To round it all up.. Shortcode listings:
 
-[sb_child_list] <-- Arguments allowed are: 'template', 'nest_level' and 'order'
+[sb_child_list] <-- Arguments allowed are: 'template', 'nest_level', 'orderby' and 'order' (order and orderby allow the arguments specified in this list: http://codex.wordpress.org/Class_Reference/WP_Query#Order_.26_Orderby_Parameters)
 [sb_parent]
 [sb_grandparent]
 [sb_cat_list]
@@ -124,4 +124,5 @@ Screenshots available at: http://www.sean-barton.co.uk/sb-child-list/
  
  4.2:   Minor update. Fixed a bug whereby an empty list would show (including triggering the widget not to hide) even if there are no child posts.
  
+ 4.3:   Major update. Fixed a default argument issue for anyone not declaring their own orders within the shortcodes. Would cause the query to fail and list to likely to be empty.
  
