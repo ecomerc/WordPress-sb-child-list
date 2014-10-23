@@ -155,9 +155,15 @@ function sb_cl_render_cat_list($category, $limit=false, $order=false, $template_
 	}
 	
 	$temp_query = $wp_query;
+    
+    $current_user = wp_get_current_user();
+    $post_status = "publish";
+    if ($current_user->has_cap('read_private_posts') && $current_user->has_cap('read_private_pages')) {
+       $post_status .= ",private";
+    }
 	
 	$cat_id = sb_cl_get_cat_id_from_name($category);
-        $qs = "cat=" . $cat_id . '&post_status=publish';
+        $qs = "cat=" . $cat_id . '&post_status='.$post_status;
         $qs .= '&posts_per_page=' . $limit;
 	$qs .= '&orderby=' . $order;
 	
@@ -302,9 +308,15 @@ function sb_cl_render_child_list($template_id = 1, $id=false, $nest_level=0, $or
 //	global $wp_query;
 //	$temp_query = $wp_query;
 	
+    $current_user = wp_get_current_user();
+    $post_status = "publish";
+    if ($current_user->has_cap('read_private_posts') && $current_user->has_cap('read_private_pages')) {
+       $post_status = array("publish", "private");
+    }
+    
 	$args = array(
 		'post_type'=>'page'
-		, 'post_status'=>'publish'
+		, 'post_status'=>$post_status
 		, 'posts_per_page'=>$limit
 		, 'post_parent'=>$id
 		, 'orderby'=>$orderby
@@ -477,11 +489,18 @@ function sb_cl_render_sibling($type='next') {
 	$html = '';
 	
 	if ($post->post_parent) {
+    
+        $current_user = wp_get_current_user();
+        $post_status = 'post_status = "publish"';
+        if ($current_user->has_cap('read_private_posts') && $current_user->has_cap('read_private_pages')) {
+           $post_status .= '(post_status = "publish" OR post_status = "private")';
+        }
+    
 		$sql = 'SELECT ID, post_title, menu_order
 			FROM ' . $wpdb->posts . '
 			WHERE
 				post_type = "page"
-				AND post_status = "publish"
+				AND '.$post_status.'
 				AND post_parent = ' . $post->post_parent . '
 			ORDER BY menu_order, post_title';
 		if ($siblings = $wpdb->get_results($sql)) {
